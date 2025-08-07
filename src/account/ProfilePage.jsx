@@ -1,7 +1,7 @@
 import useQuery from "../api/useQuery";
 import { useAuth } from "../auth/AuthContext";
 
-export default function ProfilePage(id) {
+export default function ProfilePage() {
 
   const { token } = useAuth();
   const {

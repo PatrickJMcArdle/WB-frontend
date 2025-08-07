@@ -5,12 +5,12 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import HomePage from "./pages/HomePage";
 import Login from "./auth/Login";
 import Register from "./auth/Register";
-import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import FindMatchPage from "./pages/FindMatchPage";
 import MyBuddyPage from "./pages/MyBuddyPage";
 import MapPage from "./pages/MapPage";
 import AdminPage from "./pages/AdminPage";
+import ProfilePage from "./account/ProfilePage";
 
 export default function App() {
   return (
