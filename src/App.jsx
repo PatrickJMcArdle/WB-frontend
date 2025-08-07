@@ -1,15 +1,32 @@
-import { Route, Routes } from "react-router";
+import { Routes, Route } from "react-router-dom";
 import Layout from "./layout/Layout";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+import HomePage from "./pages/HomePage";
 import Login from "./auth/Login";
 import Register from "./auth/Register";
+import ProfilePage from "./pages/ProfilePage";
+import SettingsPage from "./pages/SettingsPage";
+import FindMatchPage from "./pages/FindMatchPage";
+import MyBuddyPage from "./pages/MyBuddyPage";
+import MapPage from "./pages/MapPage";
+import AdminPage from "./pages/AdminPage";
 
 export default function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route index element={<p>Home page</p>} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/find" element={<FindMatchPage />} />
+          <Route path="/buddy" element={<MyBuddyPage />} />
+          <Route path="/map" element={<MapPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+        </Route>
       </Route>
     </Routes>
   );
