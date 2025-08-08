@@ -1,5 +1,11 @@
+import { Outlet } from "react-router";
+
 export default function ProtectedRoute(){
     return(
-        <h1>Template</h1>
+        <>
+            <main>
+                <Outlet />
+            </main>
+        </>
     )
 }

@@ -52,7 +52,7 @@ export default function HomePage() {
       <button>Find Gym Near Me</button>
       <nav>
         <button>Map</button>
-        <button onClick={() => navigate("/profile")}>Profile</button>
+        <button onClick={() => navigate("/profile/:id")}>Profile</button>
         <button onClick={() => navigate("/home")}>Home</button>
         <button>Trophies</button>
         <button>Logout</button>
