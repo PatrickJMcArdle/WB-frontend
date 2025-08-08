@@ -21,8 +21,8 @@ const GENDER_LABELS = {
 };
 
 export default function FindMatchPage() {
-  const { user } = useAuth() || {}; // <- make sure AuthContext exposes user with id
-  const currentUserId = user?.id ?? 1; // fallback for dev if user isn’t wired yet
+  const { user, token } = useAuth() || {};
+  const currentUserId = user?.id ?? null;
 
   // Local filter state (client-side for now)
   const [filters, setFilters] = useState({
@@ -32,17 +32,21 @@ export default function FindMatchPage() {
     name: "", // partial username/first_name
   });
 
-  // Fetch trainers that match current trainee per backend rule
+  // Choose trainers if logged in as trainee, or trainees if logged in as trainer
+  const mode = user?.account_type === 1 ? "trainees" : "trainers";
+  const resource = currentUserId ? `users/${mode}/${currentUserId}` : null;
+
+  // Fetch matches
   const {
-    data: trainers,
+    data: matches,
     loading,
     error,
-  } = useQuery(`/api/users/trainers/${currentUserId}`);
+  } = useQuery(resource, { enabled: !!token && !!resource });
 
-  // Client-side filtering until backend adds a search endpoint
+  // Client-side filtering until backend adds search params
   const filtered = useMemo(() => {
-    if (!Array.isArray(trainers)) return [];
-    return trainers.filter((t) => {
+    if (!Array.isArray(matches)) return [];
+    return matches.filter((t) => {
       if (filters.level && String(t.fitness_level) !== String(filters.level)) {
         return false;
       }
@@ -61,11 +65,13 @@ export default function FindMatchPage() {
       }
       return true;
     });
-  }, [trainers, filters]);
+  }, [matches, filters]);
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Find a Trainer</h1>
+      <h1 className="text-2xl font-bold mb-4">
+        Find a {mode === "trainers" ? "Trainer" : "Trainee"}
+      </h1>
 
       <MatchFilters
         filters={filters}
@@ -75,8 +81,8 @@ export default function FindMatchPage() {
         genderLabels={GENDER_LABELS}
       />
 
-      {loading && <p>Loading trainers…</p>}
-      {error && <p className="text-red-600">Failed to load trainers.</p>}
+      {loading && <p>Loading {mode}…</p>}
+      {error && <p className="text-red-600">Failed to load {mode}.</p>}
 
       {!loading && !error && (
         <MatchResults
