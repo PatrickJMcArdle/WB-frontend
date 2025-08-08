@@ -1,33 +1,50 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useApi } from "./ApiContext";
 
-/** Queries the API and returns the data, loading status, and error message. */
-export default function useQuery(resource, tag) {
+/**
+ * useQuery(resource, options?)
+ * - resource: string | null
+ * - options:
+ *    - enabled?: boolean (default true)
+ *    - tag?: string (optional: used with provideTag/invalidateTags)
+ *
+ * Returns: { data, loading, error, refetch }
+ */
+export default function useQuery(resource, { enabled = true, tag } = {}) {
   const { request, provideTag } = useApi();
 
   const [data, setData] = useState();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(Boolean(enabled && resource));
   const [error, setError] = useState(null);
 
-  const query = async () => {
+  const refetch = async (signal) => {
+    if (!resource) return;
     setLoading(true);
     setError(null);
-
     try {
-      const result = await request(resource);
+      const result = await request(resource, { signal });
       setData(result);
     } catch (e) {
-      console.error(e);
-      setError(e.message);
+      if (e.name !== "AbortError") {
+        console.error(e);
+        setError(e.message || "Request failed");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    provideTag(tag, query);
-    query();
-  }, []);
+    if (!resource || !enabled) return;
+    const ctrl = new AbortController();
 
-  return { data, loading, error };
+    // register this query under a tag (optional)
+    if (tag) provideTag(tag, () => refetch(ctrl.signal));
+
+    refetch(ctrl.signal);
+    return () => ctrl.abort();
+    // re-run when resource or enabled change
+  }, [resource, enabled]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return { data, loading, error, refetch };
 }

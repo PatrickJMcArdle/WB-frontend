@@ -1,7 +1,6 @@
-import { Routes, Route } from "react-router";
+import { Routes, Route } from "react-router-dom";
 import Layout from "./layout/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
-
 
 import Login from "./auth/Login";
 import Register from "./auth/Register";
@@ -13,7 +12,6 @@ import MapPage from "./pages/MapPage";
 import AdminPage from "./pages/AdminPage";
 import ProfilePage from "./account/ProfilePage";
 import FrontPage from "./account/LoginPage";
-
 
 export default function App() {
   return (
