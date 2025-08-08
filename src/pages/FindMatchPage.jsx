@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "../auth/AuthContext";
-import { useQuery } from "../api/useQuery";
 import MatchFilters from "../components/MatchFilters";
 import MatchResults from "../components/MatchResults";
+import useQuery from "../api/useQuery";
 
 /** Map backend ints -> human labels (adjust if your app uses different labels) */
 const LEVEL_LABELS = {
