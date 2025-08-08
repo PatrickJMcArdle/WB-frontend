@@ -26,8 +26,8 @@ export default function HomePage() {
   return (
     <div className="home-page">
         <div className="top-buttons">
-            <button onClick={() => navigate("/3d-buds")}>3d bud</button>
-            <button onClick={() => navigate("/messages")}>Chat</button>
+            <button>buddy</button>
+            <button>Chat</button>
         </div>
 
       <h2>{today}</h2>
@@ -48,14 +48,14 @@ export default function HomePage() {
         ))}
       </ul>
 
-      <button onClick={() => navigate("/saved-workouts")}>Saved Workouts</button>
-      <button onClick={() => navigate("/find-gym")}>Find Gym Near Me</button>
+      <button>Saved Workouts</button>
+      <button>Find Gym Near Me</button>
       <nav>
-        <button onClick={() => navigate("/map")}>Map</button>
+        <button>Map</button>
         <button onClick={() => navigate("/profile")}>Profile</button>
-        <button onClick={() => navigate("/")}>Home</button>
-        <button onClick={() => navigate("/trophies")}>Trophies</button>
-        <button onClick={() => navigate("/logout")}>Logout</button>
+        <button onClick={() => navigate("/home")}>Home</button>
+        <button>Trophies</button>
+        <button>Logout</button>
       </nav>
     </div>
   );
