@@ -1,25 +1,34 @@
-import { Route, Routes } from "react-router";
+import { Routes, Route } from "react-router-dom";
 import Layout from "./layout/Layout";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+
 import Login from "./auth/Login";
 import Register from "./auth/Register";
 import HomePage from "./home/HomePage";
+import SettingsPage from "./pages/SettingsPage";
+import FindMatchPage from "./pages/FindMatchPage";
+import MyBuddyPage from "./pages/MyBuddyPage";
+import MapPage from "./pages/MapPage";
+import AdminPage from "./pages/AdminPage";
+import ProfilePage from "./account/ProfilePage";
+
 
 export default function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route index element={<HomePage />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/profile" element={<div>Profile Page</div>} />
-        
-        <Route path="/saved-workouts" element={<div>Saved Workouts</div>} />
-        <Route path="/map" element={<div>Map</div>} />
-        <Route path="/trophies" element={<div>Trophies</div>} />
-        <Route path="/find-gym" element={<div>Find Gym Near Me</div>} />
-        <Route path="/logout" element={<div>Logout</div>} />
-        <Route path="/messages" element={<div>Messages</div>} />
-        <Route path="/3d-buds" element={<div>3D Buds</div>} />
+        <Route path="/register" element={<Register />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/find" element={<FindMatchPage />} />
+          <Route path="/buddy" element={<MyBuddyPage />} />
+          <Route path="/map" element={<MapPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+        </Route>
       </Route>
     </Routes>
   );
