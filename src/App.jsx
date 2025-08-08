@@ -12,13 +12,14 @@ import MyBuddyPage from "./pages/MyBuddyPage";
 import MapPage from "./pages/MapPage";
 import AdminPage from "./pages/AdminPage";
 import ProfilePage from "./account/ProfilePage";
+import FrontPage from "./account/LoginPage";
 
 
 export default function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<FrontPage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
