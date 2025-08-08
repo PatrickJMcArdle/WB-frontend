@@ -1,14 +1,15 @@
+import { useParams } from "react-router";
 import useQuery from "../api/useQuery";
 import { useAuth } from "../auth/AuthContext";
 
 export default function ProfilePage() {
-
+  const { id } = useParams()
   const { token } = useAuth();
   const {
     data: user,
     loading,
     error,
-  } = useQuery("/users/" + id, ["users"])
+  } = useQuery(`/users/${id}`, ["users"])
 
   if (loading || !user) return <p>Loading...</p>
   if (error) return <p>Sorry! {error}</p>
