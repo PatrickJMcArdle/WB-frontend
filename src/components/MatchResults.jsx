@@ -1,25 +1,47 @@
-const sampleUsers = [
-  {
-    name: "Jordan",
-    level: "Intermediate",
-    goal: "Weight Loss",
-    city: "Chicago",
-  },
-  { name: "Taylor", level: "Beginner", goal: "Muscle Gain", city: "Austin" },
-];
+export default function MatchResults({
+  users,
+  levelLabels,
+  goalLabels,
+  genderLabels,
+}) {
+  if (!users?.length) {
+    return <p>No trainers found. Try broadening your filters.</p>;
+  }
 
-export default function MatchResults() {
   return (
-    <div className="grid gap-4">
-      {sampleUsers.map((user, idx) => (
-        <div key={idx} className="p-4 border rounded shadow bg-white">
-          <h2 className="font-bold text-lg">{user.name}</h2>
-          <p>
-            {user.level} | Goal: {user.goal}
-          </p>
-          <p>{user.city}</p>
-          <button className="mt-2 text-blue-600">View Profile</button>
-        </div>
+    <div className="grid gap-4 md:grid-cols-2">
+      {users.map((u) => (
+        <article key={u.id} className="p-4 border rounded bg-white shadow-sm">
+          <header className="mb-2">
+            <h2 className="text-lg font-semibold">
+              {u.first_name}{" "}
+              <span className="text-gray-500">@{u.username}</span>
+            </h2>
+          </header>
+
+          <ul className="text-sm space-y-1 mb-3">
+            <li>
+              <strong>Level:</strong> {levelLabels[u.fitness_level] ?? "—"}
+            </li>
+            <li>
+              <strong>Goal:</strong> {goalLabels[u.fitness_goal] ?? "—"}
+            </li>
+            <li>
+              <strong>Gender:</strong> {genderLabels[u.gender] ?? "—"}
+            </li>
+            <li>
+              <strong>Account Type:</strong>{" "}
+              {u.account_type === 1 ? "Trainer" : "Trainee"}
+            </li>
+          </ul>
+
+          <div className="flex gap-2">
+            <button className="px-3 py-1 rounded bg-blue-600 text-white">
+              View Profile
+            </button>
+            <button className="px-3 py-1 rounded border">Connect</button>
+          </div>
+        </article>
       ))}
     </div>
   );
