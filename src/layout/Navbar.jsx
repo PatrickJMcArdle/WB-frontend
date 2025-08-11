@@ -13,7 +13,10 @@ export default function Navbar() {
         {token ? (
           <button onClick={logout}>Log out</button>
         ) : (
-          <NavLink to="/login">Log in</NavLink>
+          <>
+            <NavLink to="/register">Register</NavLink>
+            <NavLink to="/login">Log in</NavLink>
+          </>
         )}
       </nav>
     </header>

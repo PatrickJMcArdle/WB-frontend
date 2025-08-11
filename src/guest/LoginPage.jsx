@@ -9,7 +9,7 @@ export default function FrontPage() {
       <br />
       <Link to="/login">Login</Link>
       <br />
-      <Link to="/home">View as Guest</Link>
+      <Link to="/guest">View as Guest</Link>
     </div>
   )
 }
