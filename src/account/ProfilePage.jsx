@@ -14,6 +14,15 @@ export default function ProfilePage() {
   if (loading || !user) return <p>Loading...</p>
   if (error) return <p>Sorry! {error}</p>
 
+  let gender = "N/A"
+  if (user.gender === 0) {
+    gender = "Male"
+  } else if (user.gender === 1) {
+    gender = "Female"
+  } else if (user.gender === 2) {
+    gender = "Other"
+  }
+
   return (
     <>
       <div>
@@ -24,7 +33,7 @@ export default function ProfilePage() {
             <li>Account: {user.account_type}</li>
             <li>Username: {user.username}</li>
             <li>Name: {user.first_name}</li>
-            <li>{user.gender} | {user.birthday}</li>
+            <li>Gender: {gender} | Birthday: {user.birthday}</li>
           </ul>
         </div>
         <div>
