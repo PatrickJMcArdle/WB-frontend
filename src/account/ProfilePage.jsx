@@ -23,6 +23,14 @@ export default function ProfilePage() {
     gender = "Other"
   }
 
+  const birthday = new Date(user.birthday)
+  const newBirthday = birthday.toLocaleString().split(",")[0]
+  console.log(birthday);
+  
+  console.log(newBirthday);
+  
+  
+
   return (
     <>
       <div>
@@ -33,7 +41,7 @@ export default function ProfilePage() {
             <li>Account: {user.account_type}</li>
             <li>Username: {user.username}</li>
             <li>Name: {user.first_name}</li>
-            <li>Gender: {gender} | Birthday: {user.birthday}</li>
+            <li>Gender: {gender} | Birthday: {newBirthday}</li>
           </ul>
         </div>
         <div>
