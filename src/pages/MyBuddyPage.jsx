@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import XPBar from "../components/XPBar";
+// import XPBar from "../components/XPBar";
 import AvatarPreview from "../components/mybuddy/AvatarPreview";
 import StatAllocation from "../components/mybuddy/StatAllocation";
 import OutfitGallery from "../components/mybuddy/OutfitGallery";
