@@ -77,7 +77,7 @@ export default function HomePage() {
             </div>
         </div>
         
-        <div className="nav-button" onClick={() => navigate("/profile")}>
+        <div className="nav-button" onClick={() => navigate(`/profile/${user.id}`)}>
             <div className="nav-item">
                 <img src="/images/ProfileIcon.png" alt="Profile" />
                 <span>Profile</span>
