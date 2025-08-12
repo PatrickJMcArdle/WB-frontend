@@ -1,40 +1,39 @@
-// src/auth/AuthContext.jsx
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { API } from "../api/ApiContext";
 
 const AuthContext = createContext();
 
-// NEW: tiny helper to decode JWT payload and read { id, account_type }
 function parseJwt(token) {
   try {
     const base64 = token.split(".")[1];
-    return JSON.parse(atob(base64)); // ok for simple client payloads
+    return JSON.parse(atob(base64));
   } catch {
     return null;
   }
 }
 
 export function AuthProvider({ children }) {
-  // keep your sessionStorage persistence
+  console.log("[AuthContext] API base URL:", API); // ✅ log 1 — make sure it’s correct
+
   const [token, setToken] = useState(
     () => sessionStorage.getItem("token") || null
   );
 
-  // NEW: derive a user object from the token (id + account_type)
   const [user, setUser] = useState(() => {
     const t = sessionStorage.getItem("token");
     if (!t) return null;
     const payload = parseJwt(t);
+    console.log("[AuthContext] Initial parsed JWT:", payload); // ✅ log 2 — startup
     return payload
       ? { id: payload.id, account_type: payload.account_type ?? 0 }
       : null;
   });
 
-  // keep token in sessionStorage; also (NEW) keep user in state when token changes
   useEffect(() => {
     if (token) {
       sessionStorage.setItem("token", token);
       const payload = parseJwt(token);
+      console.log("[AuthContext] Parsed JWT on token change:", payload); // ✅ log 3 — after login/register
       setUser(
         payload
           ? { id: payload.id, account_type: payload.account_type ?? 0 }
@@ -46,7 +45,6 @@ export function AuthProvider({ children }) {
     }
   }, [token]);
 
-  // unchanged: register returns a token (string)
   const register = async (credentials) => {
     const res = await fetch(API + "/users/register", {
       method: "POST",
@@ -55,10 +53,9 @@ export function AuthProvider({ children }) {
     });
     const text = await res.text();
     if (!res.ok) throw Error(text);
-    setToken(text); // user will be derived in the effect above
+    setToken(text);
   };
 
-  // unchanged path, but now we also derive user from token
   const login = async (credentials) => {
     const res = await fetch(API + "/users/login", {
       method: "POST",
@@ -67,14 +64,13 @@ export function AuthProvider({ children }) {
     });
     const text = await res.text();
     if (!res.ok) throw Error(text);
-    setToken(text); // user will be derived in the effect above
+    setToken(text);
   };
 
   const logout = () => {
-    setToken(null); // effect clears user + storage
+    setToken(null);
   };
 
-  // expose user + token
   const value = useMemo(
     () => ({ token, user, register, login, logout }),
     [token, user]
