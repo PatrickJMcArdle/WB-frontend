@@ -22,6 +22,7 @@ export default function useQuery(resource, { enabled = true, tag } = {}) {
     setLoading(true);
     setError(null);
     try {
+      console.log("[useQuery] Fetching:", resource);
       const result = await request(resource, { signal });
       setData(result);
     } catch (e) {

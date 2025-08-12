@@ -24,9 +24,13 @@ export default function FindMatchPage() {
 
   // trainees see trainers; trainers see trainees
   const mode = user?.account_type === 1 ? "trainees" : "trainers";
-  const resource = currentUserId ? `users/${mode}/${currentUserId}` : null;
 
-  console.log(resource);
+  // ✅ Leading slash ensures absolute path with API base
+  const resource = currentUserId ? `/users/${mode}/${currentUserId}` : null;
+
+  console.log("[FindMatchPage] mode:", mode);
+  console.log("[FindMatchPage] resource:", resource);
+  console.log("[FindMatchPage] token present:", !!token);
 
   // fetch matches; returns refetch we can call on Search
   const {
@@ -36,12 +40,10 @@ export default function FindMatchPage() {
     refetch,
   } = useQuery(resource, { enabled: !!token && !!resource, tag: "matches" });
 
-  // Click Search = apply filters + (for now) just refetch same endpoint
+  // Click Search = apply filters + refetch (backend filters can come later)
   const handleSearch = () => {
     setFilters(draftFilters);
-    // backend doesn’t take query params yet, but we still refetch so you see a new request
     refetch();
-    // debug:
     console.log("Applied filters:", draftFilters);
   };
 
