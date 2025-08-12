@@ -1,0 +1,157 @@
+/* HOME PAGE */
+/* container */
+.home-page {
+  background-color: #D9D3BF;
+  border: 4px solid #404040;
+  padding: 1rem;
+  font-family: sans-serif;
+}
+
+.top-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.icon-message img {
+  width: 100px;
+  height: auto;
+  object-fit: contain;
+}
+
+/* date */
+.home-page h2 {
+  text-align: center;
+  background-color: #E2B45E;
+  color: #404040;
+  padding: 1rem;
+  border: 4px solid #404040;
+  margin-bottom: 1rem;
+  margin-right: -20px;
+  margin-left: -20px;
+  font-size: 1.1rem;
+}
+
+/* daily goals */
+.home-page h3 {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #404040;
+}
+
+.home-page ul {
+  background-color: #404040;
+  padding: 1rem;
+  border-radius: 10px;
+  color: #e8e6e1;
+  margin-bottom: 1rem;
+}
+
+.home-page li {
+  list-style-type: none;
+  margin-bottom: 0.7rem;
+}
+
+.home-page label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1rem;
+}
+
+/* workout buttons */
+.home-page button {
+  width: 100%;
+  padding: 0.8rem;
+  font-weight: bold;
+  font-size: 1rem;
+  border: 3px solid #404040;
+  margin: 0.5rem 0;
+  border-radius: 10px;
+  background-color: #AAD99B;
+}
+
+.saved-btn {
+  background-color: #b6ec9b;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.saved-btn:hover {
+  background-color: #88b074;
+}
+
+.gym-btn {
+  background-color: #9ee5b3;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.gym-btn:hover {
+  background-color: #88b074;
+}
+
+/* nav */
+.nav-icon {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 0.5rem;
+  padding-bottom: 1rem;
+  background-color: #f4eee2;
+}
+
+.nav-button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #222;
+  cursor: pointer;
+}
+
+.nav-item img {
+  width: 100px;
+  height: auto;
+  margin-bottom: 0.2rem;
+}
+
+/* checkmark */
+.goal-checkbox {
+  width: 24px;
+  height: 24px;
+  accent-color: #b6ec9b;
+  border-radius: 6px;
+}
+.goal-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  color: #f4eee2;
+  margin-bottom: 0.7rem;
+  width: 100%;
+}
+
+.goal-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.goal-name {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #f4eee2;
+}
