@@ -1,29 +1,34 @@
 export default function MatchFilters({
-  filters,
-  onChange,
+  draftFilters,
+  onDraftChange,
+  onSearch,
+  onClear,
   levelLabels,
   goalLabels,
   genderLabels,
 }) {
   function set(key, value) {
-    onChange({ ...filters, [key]: value });
+    onDraftChange({ ...draftFilters, [key]: value });
   }
 
   return (
     <form
-      className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6"
-      onSubmit={(e) => e.preventDefault()}
+      className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSearch();
+      }}
     >
       <input
         type="text"
         placeholder="Search by name"
-        value={filters.name}
+        value={draftFilters.name}
         onChange={(e) => set("name", e.target.value)}
         className="border p-2 rounded"
       />
 
       <select
-        value={filters.level}
+        value={draftFilters.level}
         onChange={(e) => set("level", e.target.value)}
         className="border p-2 rounded"
       >
@@ -36,7 +41,7 @@ export default function MatchFilters({
       </select>
 
       <select
-        value={filters.goal}
+        value={draftFilters.goal}
         onChange={(e) => set("goal", e.target.value)}
         className="border p-2 rounded"
       >
@@ -49,7 +54,7 @@ export default function MatchFilters({
       </select>
 
       <select
-        value={filters.gender}
+        value={draftFilters.gender}
         onChange={(e) => set("gender", e.target.value)}
         className="border p-2 rounded"
       >
@@ -60,6 +65,22 @@ export default function MatchFilters({
           </option>
         ))}
       </select>
+
+      <div className="flex gap-2">
+        <button
+          type="submit"
+          className="px-4 py-2 rounded bg-blue-600 text-white"
+        >
+          Search
+        </button>
+        <button
+          type="button"
+          onClick={onClear}
+          className="px-4 py-2 rounded border"
+        >
+          Clear
+        </button>
+      </div>
     </form>
   );
 }

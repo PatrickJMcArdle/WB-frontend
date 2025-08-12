@@ -4,54 +4,65 @@ import MatchFilters from "../components/MatchFilters";
 import MatchResults from "../components/MatchResults";
 import useQuery from "../api/useQuery";
 
-/** Map backend ints -> human labels (adjust if your app uses different labels) */
-const LEVEL_LABELS = {
-  1: "Beginner",
-  2: "Intermediate",
-  3: "Advanced",
-};
+const LEVEL_LABELS = { 1: "Beginner", 2: "Intermediate", 3: "Advanced" };
 const GOAL_LABELS = {
   1: "Run a marathon",
   2: "Lose 10 pounds",
   3: "Build muscle",
 };
-const GENDER_LABELS = {
-  0: "Male",
-  1: "Female",
-};
+const GENDER_LABELS = { 0: "Male", 1: "Female" };
+
+const EMPTY = { level: "", goal: "", gender: "", name: "" };
 
 export default function FindMatchPage() {
-  const { user } = useAuth() || {}; // <- make sure AuthContext exposes user with id
-  const currentUserId = user?.id ?? 1; // fallback for dev if user isn’t wired yet
+  const { user, token } = useAuth() || {};
+  const currentUserId = user?.id ?? null;
 
-  // Local filter state (client-side for now)
-  const [filters, setFilters] = useState({
-    level: "", // 1|2|3 or ""
-    goal: "", // 1|2|3 or ""
-    gender: "", // 0|1 or ""
-    name: "", // partial username/first_name
-  });
+  // Draft vs applied filters
+  const [draftFilters, setDraftFilters] = useState(EMPTY);
+  const [filters, setFilters] = useState(EMPTY);
 
-  // Fetch trainers that match current trainee per backend rule
+  // trainees see trainers; trainers see trainees
+  const mode = user?.account_type === 1 ? "trainees" : "trainers";
+
+  // ✅ Leading slash ensures absolute path with API base
+  const resource = currentUserId ? `/users/${mode}/${currentUserId}` : null;
+
+  console.log("[FindMatchPage] mode:", mode);
+  console.log("[FindMatchPage] resource:", resource);
+  console.log("[FindMatchPage] token present:", !!token);
+
+  // fetch matches; returns refetch we can call on Search
   const {
-    data: trainers,
+    data: matches,
     loading,
     error,
-  } = useQuery(`/api/users/trainers/${currentUserId}`);
+    refetch,
+  } = useQuery(resource, { enabled: !!token && !!resource, tag: "matches" });
 
-  // Client-side filtering until backend adds a search endpoint
+  // Click Search = apply filters + refetch (backend filters can come later)
+  const handleSearch = () => {
+    setFilters(draftFilters);
+    refetch();
+    console.log("Applied filters:", draftFilters);
+  };
+
+  const handleClear = () => {
+    setDraftFilters(EMPTY);
+    setFilters(EMPTY);
+    refetch();
+  };
+
+  // Client-side filtering until backend supports ?level=&goal=&gender=&name=
   const filtered = useMemo(() => {
-    if (!Array.isArray(trainers)) return [];
-    return trainers.filter((t) => {
-      if (filters.level && String(t.fitness_level) !== String(filters.level)) {
+    if (!Array.isArray(matches)) return [];
+    return matches.filter((t) => {
+      if (filters.level && String(t.fitness_level) !== String(filters.level))
         return false;
-      }
-      if (filters.goal && String(t.fitness_goal) !== String(filters.goal)) {
+      if (filters.goal && String(t.fitness_goal) !== String(filters.goal))
         return false;
-      }
-      if (filters.gender && String(t.gender) !== String(filters.gender)) {
+      if (filters.gender && String(t.gender) !== String(filters.gender))
         return false;
-      }
       if (filters.name) {
         const q = filters.name.toLowerCase();
         const hit =
@@ -61,30 +72,39 @@ export default function FindMatchPage() {
       }
       return true;
     });
-  }, [trainers, filters]);
+  }, [matches, filters]);
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Find a Trainer</h1>
+      <h1 className="text-2xl font-bold mb-4">
+        Find a {mode === "trainers" ? "Trainer" : "Trainee"}
+      </h1>
 
       <MatchFilters
-        filters={filters}
-        onChange={setFilters}
+        draftFilters={draftFilters}
+        onDraftChange={setDraftFilters}
+        onSearch={handleSearch}
+        onClear={handleClear}
         levelLabels={LEVEL_LABELS}
         goalLabels={GOAL_LABELS}
         genderLabels={GENDER_LABELS}
       />
 
-      {loading && <p>Loading trainers…</p>}
-      {error && <p className="text-red-600">Failed to load trainers.</p>}
+      {loading && <p>Loading {mode}…</p>}
+      {error && <p className="text-red-600">Failed to load {mode}.</p>}
 
       {!loading && !error && (
-        <MatchResults
-          users={filtered}
-          levelLabels={LEVEL_LABELS}
-          goalLabels={GOAL_LABELS}
-          genderLabels={GENDER_LABELS}
-        />
+        <>
+          <p className="text-sm text-gray-600 mb-2">
+            Showing {filtered.length} result{filtered.length === 1 ? "" : "s"}
+          </p>
+          <MatchResults
+            users={filtered}
+            levelLabels={LEVEL_LABELS}
+            goalLabels={GOAL_LABELS}
+            genderLabels={GENDER_LABELS}
+          />
+        </>
       )}
     </div>
   );
