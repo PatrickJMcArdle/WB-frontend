@@ -13,6 +13,7 @@ import AdminPage from "./pages/AdminPage";
 import ProfilePage from "./account/ProfilePage";
 import FrontPage from "./guest/LoginPage";
 import GuestPage from "./guest/GuestHome";
+import LogWorkoutPage from "./pages/LogWorkoutPage";
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/buddy" element={<MyBuddyPage />} />
           <Route path="/map" element={<MapPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/log" element={<LogWorkoutPage />} />
         </Route>
       </Route>
     </Routes>
