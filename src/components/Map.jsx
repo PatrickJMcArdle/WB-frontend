@@ -7,12 +7,14 @@ export default function Map() {
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
-      const radius = 2000; // meters
+      const radius = 2000; 
 
       const res = await fetch(`/map/gyms/${lat}/${lng}/${radius}`);
       const data = await res.json();
 
-      // The Google Places API sends an object with a `results` array
+      console.log(data); 
+      console.log(data.results);
+
       setGyms(data.results);
     });
   }, []);
