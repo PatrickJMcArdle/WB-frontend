@@ -94,12 +94,12 @@ export default function HomePage() {
         
         <div className="nav-button">
             <div className="nav-item">
-                <img src="/images/TrophiesIcon.png" alt="Trophies" />
-                <span>Trophies</span>
+                <img src="/images/MagnifyingGlassIcon.png" alt="Find" />
+                <span>Find</span>
             </div>
         </div>
         
-        <div className="nav-button">
+        <div className="nav-button" onClick={() => navigate("/")}>
             <div className="nav-item">
                 <img src="/images/LogoutIcon.png" alt="Logout" />
                 <span>Logout</span>

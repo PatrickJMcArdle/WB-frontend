@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 
 import { useAuth } from "./AuthContext";
+import "../index.css"
 
 /** A form that allows users to register for a new account */
 export default function Register() {
@@ -24,24 +25,26 @@ export default function Register() {
 
   return (
     <>
-      <h1>Register for an account</h1>
-      <form action={onRegister}>
-        <label>
+    <div className="front-page">
+      <h1 className="auth-title">Register for an account</h1>
+      <form action={onRegister} className="auth-form">
+        <label className="auth-label">
           First Name
-          <input type="text" name="first_name" required />
+          <input type="text" name="first_name" required className="auth-input"/>
         </label>
-        <label>
+        <label className="auth-label">
           Username
-          <input type="text" name="username" required />
+          <input type="text" name="username" required className="auth-input"/>
         </label>
-        <label>
+        <label className="auth-label">
           Password
-          <input type="password" name="password" required />
+          <input type="password" name="password" required className="auth-input"/>
         </label>
-        <button>Register</button>
+        <button className="auth-button">Register</button>
         {error && <output>{error}</output>}
       </form>
-      <Link to="/login">Already have an account? Log in here.</Link>
+      <Link to="/login" className="login-link">Already have an account? Log in here.</Link>
+    </div>
     </>
   );
 }
