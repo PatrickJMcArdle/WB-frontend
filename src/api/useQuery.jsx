@@ -18,10 +18,11 @@ export default function useQuery(resource, { enabled = true, tag } = {}) {
   const [error, setError] = useState(null);
 
   const refetch = async (signal) => {
-    if (!resource) return;
+    if (!resource || !enabled) return;
     setLoading(true);
     setError(null);
     try {
+      console.log("[useQuery] Fetching:", resource);
       const result = await request(resource, { signal });
       setData(result);
     } catch (e) {

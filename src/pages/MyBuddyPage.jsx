@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-// import XPBar from "../components/XPBar";
+import { Link } from "react-router-dom";
+import XPBar from "../components/XPBar";
 import AvatarPreview from "../components/mybuddy/AvatarPreview";
 import StatAllocation from "../components/mybuddy/StatAllocation";
 import OutfitGallery from "../components/mybuddy/OutfitGallery";
@@ -51,7 +52,6 @@ export default function MyBuddyPage() {
       const before = prev.level;
       const next = awardXP(prev, amt);
       if (next.level > before) {
-        // replace with your toast/modal later
         console.log(`Level Up! Reached level ${next.level} (+5 stat points)`);
       }
       return next;
@@ -76,17 +76,25 @@ export default function MyBuddyPage() {
       <section className="border rounded p-4 bg-white">
         <h1 className="text-xl font-bold mb-2">My Buddy</h1>
         <div className="text-sm text-gray-600 mb-2">Level {buddy.level}</div>
+
         <XPBar current={buddy.xp} target={nextLevelXP(buddy.level)} />
-        <div className="space-x-3">
-          <button onClick={() => addXP(50)} className="mt-2 text-xs underline">
+
+        {/* Controls row: dev actions + Log workout */}
+        <div className="space-x-3 mt-2">
+          <button onClick={() => addXP(50)} className="text-xs underline">
             +50 XP (dev)
           </button>
           <button
             onClick={resetBuddy}
-            className="mt-2 text-xs text-red-600 underline"
+            className="text-xs text-red-600 underline"
           >
             Reset Buddy (dev)
           </button>
+
+          {/* NEW: navigate to workout logger */}
+          <Link to="/log">
+            <button className="text-xs underline">Log workout</button>
+          </Link>
         </div>
 
         <div className="mt-4">
@@ -121,7 +129,6 @@ export default function MyBuddyPage() {
 
 /** Map stats → body appearance (simple, tweak later) */
 function mapStatsToAppearance(stats) {
-  // strength grows arms/chest; dexterity + core add torso tone; stamina legs
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
   return {
     arms: clamp(Math.floor(stats.strength / 2), 0, 5),

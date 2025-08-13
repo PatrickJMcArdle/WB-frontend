@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router";
 import { useState } from "react";
 import '../index.css';
+import useQuery from "../api/useQuery";
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -23,11 +24,22 @@ export default function HomePage() {
     day: "numeric",
   });
 
+  const {
+    data: user,
+    loading,
+    error,
+  } = useQuery("/home/user", "user")
+  
+  if (loading || !user) return <p>Loading...</p>
+  if (error) return <p>Sorry! {error}</p>
+
   return (
     <div className="home-page">
         <div className="top-buttons">
-            <button>buddy</button>
-            <button>Chat</button>
+            <div>buddy</div>
+            <div className="icon-message">
+                    <img src="/images/MessagingIcon.png" alt="Messages" />
+            </div>
         </div>
 
       <h2>{today}</h2>
@@ -36,26 +48,63 @@ export default function HomePage() {
       <ul>
         {goals.map((goal, index) => (
           <li key={index}>
-            <label>
-              <input
+            <label className="goal-item">
+            <input
                 type="checkbox"
+                className="goal-checkbox"
                 checked={goal.completed}
                 onChange={() => toggleGoal(index)}
-              />
-              {goal.text} ___pts
+            />
+            <div className="goal-content">
+                <span className="goal-name">{goal.text}</span>
+                <span className="goal-points">___pts</span>
+            </div>
             </label>
+
           </li>
         ))}
       </ul>
 
-      <button>Saved Workouts</button>
-      <button>Find Gym Near Me</button>
-      <nav>
-        <button>Map</button>
-        <button onClick={() => navigate(`/profile/${user.id}`)}>Profile</button>
-        <button onClick={() => navigate("/home")}>Home</button>
-        <button>Trophies</button>
-        <button>Logout</button>
+    <button className="saved-btn">Saved Workouts</button>
+    <button className="gym-btn">Find Gym Near Me</button>
+
+
+      <nav className="nav-icon">
+        <div className="nav-button">
+            <div className="nav-item">
+                <img src="/images/MapIcon.png" alt="Map" />
+                <span>Map</span>
+            </div>
+        </div>
+        
+        <div className="nav-button" onClick={() => navigate(`/profile/${user.id}`)}>
+            <div className="nav-item">
+                <img src="/images/ProfileIcon.png" alt="Profile" />
+                <span>Profile</span>
+            </div>
+        </div>
+
+
+        <div className="nav-button" onClick={() => navigate("/home")}>
+            <div className="nav-item">
+                <img src="/images/HomeIcon.png" alt="Home" />
+                <span>Home</span>
+            </div>
+        </div>
+        
+        <div className="nav-button">
+            <div className="nav-item">
+                <img src="/images/MagnifyingGlassIcon.png" alt="Find" />
+                <span>Find</span>
+            </div>
+        </div>
+        
+        <div className="nav-button" onClick={() => navigate("/")}>
+            <div className="nav-item">
+                <img src="/images/LogoutIcon.png" alt="Logout" />
+                <span>Logout</span>
+            </div>
+        </div>
       </nav>
     </div>
   );
