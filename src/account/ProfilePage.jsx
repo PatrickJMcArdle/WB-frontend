@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from "react-router";
 import useQuery from "../api/useQuery";
 import { useAuth } from "../auth/AuthContext";
+import "../index.css"
 
 export default function ProfilePage() {
   const { id } = useParams()
@@ -31,10 +32,10 @@ export default function ProfilePage() {
 
   return (
     <>
-      <div>
-        <div>
+      <div className="profile-page">
+        <div className="profile-section">
           <h3>Account Info</h3>
-          <button>Edit</button>
+          <button className="section-edit">Edit</button>
           <ul>
             <li>Account: {user.account_type}</li>
             <li>Username: {user.username}</li>
@@ -42,19 +43,22 @@ export default function ProfilePage() {
             <li>Gender: {gender} | Birthday: {newBirthday}</li>
           </ul>
         </div>
-        <div>
+        <div className="profile-section">
           <h3>Fitness Info</h3>
-          <button>Edit</button>
+          <button className="section-edit">Edit</button>
           <ul>
             <li>Level: {user.fitness_level}</li>
             <li>Goal: {user.fitness_goal}</li>
           </ul>
         </div>
-        <div>
-          <h3>Achievements</h3>
-          <button>View</button>
+        <div className="profile-bottom-buttons">
+          <div className="settings-button" onClick={()=> navigate(`/settings/${id}`)}>
+            <img src="/images/SettingsIcon.png" alt="Settings" />
+          </div>
+          <div className="home-button">
+            <img src="/images/HomeIcon.png" alt="Home" />
+          </div>
         </div>
-        <button onClick={()=> navigate(`/settings/${id}`)}>Settings</button>
       </div>
     </>
   )
