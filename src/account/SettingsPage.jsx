@@ -13,11 +13,7 @@ export default function SettingsPage(){
     setVis(!vis);
     visibility({public_profile: vis});
   }
-  if (vis) {
-    visStatus = "public"
-  } else {
-    visStatus = "private"
-  }
+  const visStatus = vis ? "public" : "private";
 
   const {
     data: userSettings,
