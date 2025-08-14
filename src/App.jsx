@@ -26,7 +26,7 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/profile/:id" element={<ProfilePage />} />
-          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/settings/:id" element={<SettingsPage />} />
           <Route path="/find" element={<FindMatchPage />} />
           <Route path="/buddy" element={<MyBuddyPage />} />
           <Route path="/map" element={<MapPage />} />
