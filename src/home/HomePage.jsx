@@ -92,7 +92,7 @@ export default function HomePage() {
             </div>
         </div>
         
-        <div className="nav-button">
+        <div className="nav-button" onClick={() => navigate("/find")}>
             <div className="nav-item">
                 <img src="/images/MagnifyingGlassIcon.png" alt="Find" />
                 <span>Find</span>
