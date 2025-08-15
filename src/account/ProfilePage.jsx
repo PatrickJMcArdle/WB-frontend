@@ -55,7 +55,7 @@ export default function ProfilePage() {
           <div className="settings-button" onClick={()=> navigate(`/settings/${id}`)}>
             <img src="/images/SettingsIcon.png" alt="Settings" />
           </div>
-          <div className="home-button">
+          <div className="home-button" onClick={()=> navigate("/home")}>
             <img src="/images/HomeIcon.png" alt="Home" />
           </div>
         </div>
