@@ -9,13 +9,12 @@ import {
   setCompleted,
 } from "../services/workoutPlanService";
 import {
-  WORKOUT_FOCUS,
   calcWorkoutXP,
   accumulateDeltas,
+  FOCUS_OPTIONS,
 } from "../services/workoutService";
 import { loadBuddy, saveBuddy, awardXP } from "../services/buddyService";
 
-const FOCUS_OPTIONS = Object.keys(WORKOUT_FOCUS);
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
 export default function WorkoutPlannerPage() {
@@ -47,18 +46,12 @@ export default function WorkoutPlannerPage() {
   }
 
   function complete(p) {
-    const updated = setCompleted(p.id, {
-      minutes: p.minutes,
-      intensity: p.intensity,
-    });
+    const updated = setCompleted(p.id, { minutes: p.minutes, reps: p.reps });
     if (!updated) return;
 
     // Buddy updates
     const buddy = loadBuddy();
-    const xp = calcWorkoutXP({
-      minutes: updated.minutes,
-      intensity: updated.intensity,
-    });
+    const xp = calcWorkoutXP({ minutes: updated.minutes, reps: updated.reps });
     const deltas = accumulateDeltas([updated.focus]);
 
     let next = awardXP(buddy, xp);
@@ -141,7 +134,7 @@ export default function WorkoutPlannerPage() {
             focus: "upper",
             date: todayStr(),
             minutes: 30,
-            intensity: 2,
+            reps: 10,
             notes: "",
           }
         }
@@ -176,7 +169,7 @@ export default function WorkoutPlannerPage() {
               <small>{new Date(p.date).toLocaleDateString()}</small>
             </div>
             <div style={{ fontSize: 14, marginTop: 4 }}>
-              Focus: {p.focus} • {p.minutes} min • Intensity {p.intensity}
+              Focus: {p.focus} • {p.minutes} min • {p.reps} reps
               {p.is_completed && (
                 <span style={{ marginLeft: 8, color: "green" }}>
                   ✓ Completed

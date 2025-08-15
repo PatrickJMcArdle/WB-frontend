@@ -158,18 +158,14 @@ export function awardXP(buddy, amount) {
     };
 
     // ensure equipped cosmetics are valid (fallbacks)
-    if (!b.unlocked.hairStyleIds.includes(b.cosmetics?.hairStyleId)) {
+    if (!b.unlocked.hairStyleIds.includes(b.cosmetics?.hairStyleId))
       b.cosmetics = { ...(b.cosmetics || {}), hairStyleId: 1 };
-    }
-    if (!b.unlocked.hairColorIds.includes(b.cosmetics?.hairColorId)) {
+    if (!b.unlocked.hairColorIds.includes(b.cosmetics?.hairColorId))
       b.cosmetics = { ...(b.cosmetics || {}), hairColorId: "brown" };
-    }
-    if (!b.unlocked.topIds.includes(b.cosmetics?.topId)) {
+    if (!b.unlocked.topIds.includes(b.cosmetics?.topId))
       b.cosmetics = { ...(b.cosmetics || {}), topId: 1 };
-    }
-    if (!b.unlocked.bottomIds.includes(b.cosmetics?.bottomId)) {
+    if (!b.unlocked.bottomIds.includes(b.cosmetics?.bottomId))
       b.cosmetics = { ...(b.cosmetics || {}), bottomId: 1 };
-    }
 
     next = nextLevelXP(b.level);
   }
@@ -180,7 +176,6 @@ export function awardXP(buddy, amount) {
 function toAppearance(stats) {
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
   const s = stats || DEFAULT.stats;
-
   return {
     arms: clamp(Math.floor((s.strength || 0) / 2), 0, 5),
     chest: clamp(Math.floor(((s.strength || 0) + (s.core || 0)) / 3), 0, 5),
@@ -193,12 +188,12 @@ function toAppearance(stats) {
   };
 }
 
-// ---------- apply a workout (kept; ties to planner) ----------
+// ---------- apply a workout (updated to accept reps) ----------
 export function applyWorkout(
   buddy,
-  { focuses = [], intensity = 2, minutes = 30, notes = "" }
+  { focuses = [], reps = 10, minutes = 30, notes = "", intensity } // intensity kept for backward-compat
 ) {
-  const xpGain = calcWorkoutXP({ intensity, minutes });
+  const xpGain = calcWorkoutXP({ reps, minutes, intensity });
   const deltas = accumulateDeltas(focuses);
 
   // 1) Give XP (handles level-ups, adds statPoints)
@@ -235,12 +230,12 @@ export function applyWorkout(
       updated.stats.dexterity +
       updated.stats.stamina +
       updated.stats.core);
+
   let leftover = Math.max(0, toSpend - spent);
   if (leftover > 0) {
     const best =
       Object.entries(weights).sort((a, b) => b[1] - a[1])[0]?.[0] || "strength";
     add(newStats, best, leftover);
-    leftover = 0;
   }
 
   updated = { ...updated, stats: newStats, statPoints: 0 };
@@ -259,7 +254,7 @@ export function applyWorkout(
     lastWorkout: {
       when: Date.now(),
       focuses,
-      intensity,
+      reps,
       minutes,
       notes,
       xpGain,
