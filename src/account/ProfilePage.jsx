@@ -1,4 +1,4 @@
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import useQuery from "../api/useQuery";
 import { useAuth } from "../auth/AuthContext";
 import { useNavigate } from "react-router";
@@ -17,6 +17,7 @@ export default function ProfilePage() {
   if (loading || !user) return <p>Loading...</p>
   if (error) return <p>Sorry! {error}</p>
 
+  //gender is stored as num value, this converts it
   let gender = "N/A"
   if (user.gender === 0) {
     gender = "Male"
@@ -26,13 +27,9 @@ export default function ProfilePage() {
     gender = "Other"
   }
 
+  //convert birthday into mm/dd/yyyy format
   const birthday = new Date(user.birthday)
   const newBirthday = birthday.toLocaleString().split(",")[0]
-  console.log(birthday);
-  
-  console.log(newBirthday);
-  
-  
 
   return (
     <>
@@ -56,7 +53,7 @@ export default function ProfilePage() {
           </ul>
         </div>
         <div className="profile-bottom-buttons">
-          <div className="settings-button" onClick={() => navigate("/settings")}>
+          <div className="settings-button" onClick={()=> navigate(`/settings/${id}`)}>
             <img src="/images/SettingsIcon.png" alt="Settings" />
           </div>
           <div className="home-button" onClick={() => navigate("/home")}>
@@ -68,6 +65,5 @@ export default function ProfilePage() {
   )
   // The settings button sends you to the settings page
   // The edit buttons will bring up a form where you can submit changes to username, name, gender, birthday for account info and fitness goal for fitness info
-  // API route is correct as far as I can tell but double check that it actually loads the requested info once back end is done
-  // Make sure the user ID is properly sent into the function. Not sure that's currently handled correctly
+  // https://www.w3schools.com/howto/howto_js_popup_form.asp
 }

@@ -13,6 +13,7 @@ import AdminPage from "./pages/AdminPage";
 import ProfilePage from "./account/ProfilePage";
 import FrontPage from "./guest/LoginPage";
 import GuestPage from "./guest/GuestHome";
+import LogWorkoutPage from "./pages/LogWorkoutPage";
 
 export default function App() {
   return (
@@ -25,11 +26,12 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/profile/:id" element={<ProfilePage />} />
-          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/settings/:id" element={<SettingsPage />} />
           <Route path="/find" element={<FindMatchPage />} />
           <Route path="/buddy" element={<MyBuddyPage />} />
           <Route path="/map" element={<MapPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/log" element={<LogWorkoutPage />} />
         </Route>
       </Route>
     </Routes>
