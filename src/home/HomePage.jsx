@@ -8,6 +8,7 @@ export default function HomePage() {
   const navigate = useNavigate();
 
   const [showMap, setShowMap] = useState(false);
+  console.log("Show map:", showMap);
 
   const [goals, setGoals] = useState([
     { text: "RDL", completed: false },
@@ -93,13 +94,12 @@ export default function HomePage() {
             <span>Home</span>
           </div>
         </div>
-        
-        <div className="nav-button" onClick={() => navigate("/find")}>
-            <div className="nav-item">
-                <img src="/images/MagnifyingGlassIcon.png" alt="Find" />
-                <span>Find</span>
-            </div>
 
+        <div className="nav-button" onClick={() => navigate("/find")}>
+          <div className="nav-item">
+            <img src="/images/MagnifyingGlassIcon.png" alt="Find" />
+            <span>Find</span>
+          </div>
         </div>
 
         <div className="nav-button" onClick={() => navigate("/")}>
