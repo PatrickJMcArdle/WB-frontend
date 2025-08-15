@@ -14,6 +14,8 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
+
+
 /* Top buttons row */
 .top-buttons {
   display: flex;
@@ -38,7 +40,6 @@
   height: auto;
   object-fit: contain;
 }
-
 /* Date header */
 .home-page h2 {
   text-align: center;
@@ -93,7 +94,6 @@
 
 .saved-btn {
   background-color: #b6ec9b;
-  transition: background-color 0.2s ease;
   cursor: pointer;
 }
 
@@ -103,7 +103,6 @@
 
 .gym-btn {
   background-color: #b6ec9b;
-  transition: background-color 0.2s ease;
   cursor: pointer;
 }
 
@@ -138,10 +137,11 @@
 }
 
 .nav-item img[alt="Find"] {
-  width: 50px;
+  width: 44.9px;
   height: auto;
-  margin-top: -16px;
+  margin-top: -18px;
   padding-top: 26px;
+  margin-bottom: 0.69rem
 }
 
 .nav-item img[alt="Home"] {
@@ -149,6 +149,21 @@
   height: auto;
   margin-top: -5px;
   padding-top: 9px;
+}
+
+.nav-item img[alt="Profile"] {
+  margin-bottom: 0.25rem
+}
+
+.nav-item img[alt="Logout"] {
+  margin-bottom: 0.25rem
+}
+
+/* Button Styling */
+.icon-message:hover img,
+.top-buttons > div:hover img,
+.nav-item:hover img {
+  transform: scale(1.06);
 }
 
 /* Checkmark styling */
@@ -313,6 +328,23 @@
   background-color: #88b074;
 }
 
+
+
+.go-back {
+  display: inline-block;
+  font-weight: bold;
+  color: #5f795a; 
+  text-decoration: underline;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.go-back:hover {
+  color: #475a32; 
+}
+
 /* View as Guest */
 .guest-home-page {
   background: linear-gradient(to bottom, #f5f3eb, #b6a983);
@@ -326,7 +358,6 @@
   padding: 1.5rem;
   box-sizing: border-box;
   font-family: sans-serif;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   display: flex;
   flex-direction: column;
 }
@@ -380,7 +411,6 @@
   border-radius: 10px;
   background-color: #b6ec9b;
   cursor: pointer;
-  transition: background-color 0.2s ease;
 }
 .guest-home-page > button:hover { 
   background-color: #88b074; 
@@ -422,7 +452,7 @@
   border-width: 13px;
   border-radius: 10px;
   width: 375px;
-  min-height: 667px;
+  height: 667px;
   margin: 4rem auto;
   padding: 1rem;
   box-sizing: border-box;
@@ -430,6 +460,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+
 }
 
 /* Section Box */
@@ -506,15 +537,165 @@
 }
 
 .settings-button img {
-  width: 80px;
+  width: 57px;
   height: auto;
 }
 
+.settings-button :hover {
+  transform: scale(1.06);
+}
+
 .home-button img {
-  width: 90px;
+  width: 73px;
   height: auto;
+}
+
+.home-button :hover {
+  transform: scale(1.06);
 }
 
 .section-edit {
   padding-top: 6px;
+}
+
+/* FIND PAGE */
+
+.p-4 {
+  background: linear-gradient(to bottom, #f5f3eb, #cfc29a);
+  border: 6px solid #404040;
+  outline: 10px solid #D9D3BF;
+  border-width: 13px;
+  border-radius: 10px;
+  width: 375px;
+  min-height: 667px;
+  margin: 4rem auto;
+  font-family: sans-serif;
+  padding: 1.25rem;
+  box-sizing: border-box;
+
+
+}
+
+.p-4 > h1 {
+  color: #404040;
+  font-weight: 800;
+  font-size: 1.6rem;
+  text-align: center;
+  margin: 0 0 1rem 0;
+  letter-spacing: 0.2px;
+}
+
+.p-4 input[type="text"],
+.p-4 input[type="search"],
+.p-4 select {
+  width: 100%;
+  max-width: 100%;
+  background: #f5f3eb;
+  color: #333;
+  border: 3px solid #404040;
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  font-size: 1rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.p-4 .find-filters,
+.p-4 form,
+.p-4 .filters,
+.p-4 .filter-row {
+  display: grid;
+  gap: 0.6rem;
+}
+
+
+.p-4 button {
+  background-color: #a7df9b;
+  color: #404040;
+  border: 3px solid #404040;
+  border-radius: 10px;
+  font-weight: 800;
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.p-4 button:hover {
+  background-color: #88b074;
+}
+
+.p-4 form .flex > * + *,
+.results-list .flex > * + * {
+  margin-left: 1rem;
+}
+
+
+
+
+.results-list,
+.p-4 .results-list {
+  max-height: 430px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 0.5rem;
+}
+
+.results-list .p-4 {
+  background: rgba(255, 255, 255, 0.6);
+  border: none;
+  outline: none;
+  width: auto;
+  min-height: 0;
+  margin: 0.6rem 0;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+  box-sizing: border-box;
+}
+
+.results-list .p-4 > h3 {
+  margin: 0 0 0.4rem 0;
+  color: #222;
+  font-weight: 800;
+}
+
+.results-list .p-4 ul {
+  margin: 0.25rem 0 0;
+  padding-left: 1rem;
+  color: #333;
+}
+
+.results-list .p-4 button {
+  margin-top: 0.6rem;
+}
+
+.find-match-container {
+  max-height: 667px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.find-page {
+  height: 667px;
+  overflow-y: auto; 
+  overflow-x: hidden;
+}
+
+/* Home Button Left Corner */
+.find-header-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.find-home-btn img {
+  width: 60px;
+  height: auto;
+  display: block;
+}
+
+.find-home-btn:hover img {
+  transform: scale(1.06);
 }
