@@ -14,6 +14,7 @@ import ProfilePage from "./account/ProfilePage";
 import FrontPage from "./guest/LoginPage";
 import GuestPage from "./guest/GuestHome";
 import LogWorkoutPage from "./pages/LogWorkoutPage";
+import WorkoutPlannerPage from "./pages/WorkoutPlannerPage";
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="/settings/:id" element={<SettingsPage />} />
           <Route path="/find" element={<FindMatchPage />} />
           <Route path="/buddy" element={<MyBuddyPage />} />
+          <Route path="/workouts" element={<WorkoutPlannerPage />} />
           <Route path="/map" element={<MapPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/log" element={<LogWorkoutPage />} />

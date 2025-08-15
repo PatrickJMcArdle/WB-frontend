@@ -79,7 +79,7 @@ export default function MyBuddyPage() {
 
         <XPBar current={buddy.xp} target={nextLevelXP(buddy.level)} />
 
-        {/* Controls row: dev actions + Log workout */}
+        {/* Controls row: dev actions + Workout Planner */}
         <div className="space-x-3 mt-2">
           <button onClick={() => addXP(50)} className="text-xs underline">
             +50 XP (dev)
@@ -91,9 +91,9 @@ export default function MyBuddyPage() {
             Reset Buddy (dev)
           </button>
 
-          {/* NEW: navigate to workout logger */}
-          <Link to="/log">
-            <button className="text-xs underline">Log workout</button>
+          {/* NEW: navigate to workout planner */}
+          <Link to="/workouts" className="text-xs underline">
+            Open Workout Planner
           </Link>
         </div>
 

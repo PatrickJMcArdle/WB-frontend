@@ -65,3 +65,5 @@ export function accumulateDeltas(focuses = []) {
   });
   return out;
 }
+
+export const FOCUS_OPTIONS = Object.keys(WORKOUT_FOCUS);
