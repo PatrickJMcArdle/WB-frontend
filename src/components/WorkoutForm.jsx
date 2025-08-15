@@ -7,7 +7,7 @@ export default function WorkoutForm({
     focus: "upper",
     date: new Date().toISOString().slice(0, 10),
     minutes: 30,
-    intensity: 2,
+    reps: 10,
     notes: "",
   },
   focusOptions = [],
@@ -27,12 +27,15 @@ export default function WorkoutForm({
     const e = {};
     if (!form.title.trim()) e.title = "Title is required";
     if (!focusOptions.includes(form.focus)) e.focus = "Pick a valid focus";
+
     const mins = Number(form.minutes);
     if (!Number.isFinite(mins) || mins < 5 || mins > 180)
       e.minutes = "Minutes must be 5–180";
-    const intensity = Number(form.intensity);
-    if (!Number.isFinite(intensity) || intensity < 1 || intensity > 5)
-      e.intensity = "Intensity must be 1–5";
+
+    const reps = Number(form.reps);
+    if (!Number.isFinite(reps) || reps < 1 || reps > 100)
+      e.reps = "Reps must be 1–100";
+
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -44,7 +47,7 @@ export default function WorkoutForm({
       ...form,
       title: form.title.trim(),
       minutes: Math.round(Number(form.minutes)),
-      intensity: Math.round(Number(form.intensity)),
+      reps: Math.round(Number(form.reps)),
     };
     onSave?.(payload);
   }
@@ -121,16 +124,14 @@ export default function WorkoutForm({
           <input
             type="number"
             min={1}
-            max={5}
-            value={form.intensity}
-            onChange={(e) => update("intensity", e.target.value)}
-            placeholder="Intensity 1-5"
+            max={100}
+            value={form.reps}
+            onChange={(e) => update("reps", e.target.value)}
+            placeholder="Reps"
             style={{ width: "100%" }}
           />
-          {errors.intensity && (
-            <div style={{ color: "crimson", fontSize: 12 }}>
-              {errors.intensity}
-            </div>
+          {errors.reps && (
+            <div style={{ color: "crimson", fontSize: 12 }}>{errors.reps}</div>
           )}
         </div>
       </div>

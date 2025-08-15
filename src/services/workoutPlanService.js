@@ -35,7 +35,7 @@ export function deletePlan(id) {
   savePlans(plans);
 }
 
-export function setCompleted(id, { minutes, intensity }) {
+export function setCompleted(id, { minutes, reps }) {
   const plans = loadPlans();
   const idx = plans.findIndex((p) => p.id === id);
   if (idx >= 0) {
@@ -44,7 +44,7 @@ export function setCompleted(id, { minutes, intensity }) {
       is_completed: true,
       completed_at: new Date().toISOString(),
       minutes: minutes ?? plans[idx].minutes,
-      intensity: intensity ?? plans[idx].intensity,
+      reps: reps ?? plans[idx].reps,
     };
     savePlans(plans);
     return plans[idx];
