@@ -1,7 +1,6 @@
 import { useNavigate, useParams } from "react-router";
 import useQuery from "../api/useQuery";
 import { useAuth } from "../auth/AuthContext";
-import { useNavigate } from "react-router";
 import "../index.css"
 
 export default function ProfilePage() {
