@@ -39,6 +39,7 @@ export default function Login() {
         {error && <output className="auth-error">{error}</output>}
       </form>
       <Link to="/register" className="auth-link">Need an account? Register here.</Link>
+      <Link to="/" className="go-back">Go back</Link>
     </div>
     </>
   );

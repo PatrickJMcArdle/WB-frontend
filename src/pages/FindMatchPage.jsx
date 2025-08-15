@@ -3,6 +3,9 @@ import { useAuth } from "../auth/AuthContext";
 import MatchFilters from "../components/MatchFilters";
 import MatchResults from "../components/MatchResults";
 import useQuery from "../api/useQuery";
+import "../index.css"
+import { Link } from "react-router";
+
 
 const LEVEL_LABELS = {
   1: "Beginner",
@@ -125,8 +128,19 @@ export default function FindMatchPage() {
       : "Find a Workout Partner";
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">{title}</h1>
+
+ 
+    <div className="p-4 find-page">
+        <div className="find-header-row">
+          <Link to="/home" className="find-home-btn">
+            <img src="/images/HomeIcon.png" alt="Home" />
+        </Link>
+    </div>
+      <h1 className="text-2xl font-bold mb-4">
+        Find a {testMode === "trainers" ? "Trainer" : "Trainee"}
+      </h1>
+
+
 
       <MatchFilters
         draftFilters={draftFilters}
@@ -146,12 +160,14 @@ export default function FindMatchPage() {
           <p className="text-sm text-gray-600 mb-2">
             Showing {filtered.length} result{filtered.length === 1 ? "" : "s"}
           </p>
+        <div className="results-list">
           <MatchResults
             users={filtered}
             levelLabels={LEVEL_LABELS}
             goalLabels={GOAL_LABELS}
             genderLabels={GENDER_LABELS}
           />
+        </div>
         </>
       )}
     </div>
