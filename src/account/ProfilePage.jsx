@@ -1,12 +1,13 @@
 import { useNavigate, useParams } from "react-router";
 import useQuery from "../api/useQuery";
 import { useAuth } from "../auth/AuthContext";
+import { useNavigate } from "react-router";
 import "../index.css"
 
 export default function ProfilePage() {
-  const { id } = useParams()
+  const navigate = useNavigate();
+  const { id } = useParams();
   const { token } = useAuth();
-  const navigate = useNavigate()
   const {
     data: user,
     loading,
@@ -55,7 +56,7 @@ export default function ProfilePage() {
           <div className="settings-button" onClick={()=> navigate(`/settings/${id}`)}>
             <img src="/images/SettingsIcon.png" alt="Settings" />
           </div>
-          <div className="home-button" onClick={()=> navigate("/home")}>
+          <div className="home-button" onClick={() => navigate("/home")}>
             <img src="/images/HomeIcon.png" alt="Home" />
           </div>
         </div>

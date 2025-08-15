@@ -70,11 +70,18 @@ export default function HomePage() {
       {showMap && <Map />}
 
       <nav className="nav-icon">
-        <div className="nav-button">
-          <div className="nav-item">
-            <img src="/images/MapIcon.png" alt="Map" />
-            <span>Map</span>
-          </div>
+        <div className="nav-button" onClick={() => navigate("/map")}>
+            <div className="nav-item">
+                <img src="/images/MapIcon.png" alt="Map" />
+                <span>Map</span>
+            </div>
+        </div>
+        
+        <div className="nav-button" onClick={() => navigate(`/profile/${user.id}`)}>
+            <div className="nav-item">
+                <img src="/images/ProfileIcon.png" alt="Profile" />
+                <span>Profile</span>
+            </div>
         </div>
 
         <div

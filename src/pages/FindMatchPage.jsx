@@ -3,6 +3,9 @@ import { useAuth } from "../auth/AuthContext";
 import MatchFilters from "../components/MatchFilters";
 import MatchResults from "../components/MatchResults";
 import useQuery from "../api/useQuery";
+import "../index.css"
+import { Link } from "react-router";
+
 
 const LEVEL_LABELS = { 1: "Beginner", 2: "Intermediate", 3: "Advanced" };
 const GOAL_LABELS = {
@@ -23,12 +26,18 @@ export default function FindMatchPage() {
   const [filters, setFilters] = useState(EMPTY);
 
   // trainees see trainers; trainers see trainees
-  const mode = user?.account_type === 1 ? "trainees" : "trainers";
+  // const mode = user?.account_type === 1 ? "trainees" : "trainers";
 
   // ✅ Leading slash ensures absolute path with API base
-  const resource = currentUserId ? `/users/${mode}/${currentUserId}` : null;
+  // const resource = currentUserId ? `/users/${mode}/${currentUserId}` : null;
 
-  console.log("[FindMatchPage] mode:", mode);
+  const testMode = "trainers";
+
+  const resource = currentUserId
+    ? `/users/${testMode}/${currentUserId}?goal=&preferred_trainer=`
+    : null;
+
+  console.log("[FindMatchPage] mode:", testMode);
   console.log("[FindMatchPage] resource:", resource);
   console.log("[FindMatchPage] token present:", !!token);
 
@@ -74,11 +83,52 @@ export default function FindMatchPage() {
     });
   }, [matches, filters]);
 
+  // return (
+  //   <div className="p-4">
+  //     <h1 className="text-2xl font-bold mb-4">
+  //       Find a {mode === "trainers" ? "Trainer" : "Trainee"}
+  //     </h1>
+
+  //     <MatchFilters
+  //       draftFilters={draftFilters}
+  //       onDraftChange={setDraftFilters}
+  //       onSearch={handleSearch}
+  //       onClear={handleClear}
+  //       levelLabels={LEVEL_LABELS}
+  //       goalLabels={GOAL_LABELS}
+  //       genderLabels={GENDER_LABELS}
+  //     />
+
+  //     {loading && <p>Loading {mode}…</p>}
+  //     {error && <p className="text-red-600">Failed to load {mode}.</p>}
+
+  //     {!loading && !error && (
+  //       <>
+  //         <p className="text-sm text-gray-600 mb-2">
+  //           Showing {filtered.length} result{filtered.length === 1 ? "" : "s"}
+  //         </p>
+  //         <MatchResults
+  //           users={filtered}
+  //           levelLabels={LEVEL_LABELS}
+  //           goalLabels={GOAL_LABELS}
+  //           genderLabels={GENDER_LABELS}
+  //         />
+  //       </>
+  //     )}
+  //   </div>
+  // );
+
   return (
-    <div className="p-4">
+    <div className="p-4 find-page">
+        <div className="find-header-row">
+          <Link to="/home" className="find-home-btn">
+            <img src="/images/HomeIcon.png" alt="Home" />
+        </Link>
+    </div>
       <h1 className="text-2xl font-bold mb-4">
-        Find a {mode === "trainers" ? "Trainer" : "Trainee"}
+        Find a {testMode === "trainers" ? "Trainer" : "Trainee"}
       </h1>
+
 
       <MatchFilters
         draftFilters={draftFilters}
@@ -90,20 +140,22 @@ export default function FindMatchPage() {
         genderLabels={GENDER_LABELS}
       />
 
-      {loading && <p>Loading {mode}…</p>}
-      {error && <p className="text-red-600">Failed to load {mode}.</p>}
+      {loading && <p>Loading {testMode}…</p>}
+      {error && <p className="text-red-600">Failed to load {testMode}.</p>}
 
       {!loading && !error && (
         <>
           <p className="text-sm text-gray-600 mb-2">
             Showing {filtered.length} result{filtered.length === 1 ? "" : "s"}
           </p>
+        <div className="results-list">
           <MatchResults
             users={filtered}
             levelLabels={LEVEL_LABELS}
             goalLabels={GOAL_LABELS}
             genderLabels={GENDER_LABELS}
           />
+        </div>
         </>
       )}
     </div>

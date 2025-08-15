@@ -1,7 +1,8 @@
 import '../index.css';
+import { useNavigate } from 'react-router';
 
 export default function GuestPage() {
-
+  const navigate = useNavigate();
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
@@ -40,7 +41,7 @@ export default function GuestPage() {
           </div>
         </div>
 
-        <div className="nav-button" onClick={() => navigate("/home")}>
+        <div className="nav-button">
           <div className="nav-item">
             <img src="/images/HomeIcon.png" alt="Home" />
             <span>Home</span>
