@@ -1,4 +1,3 @@
-// src/services/buddyService.js
 import { accumulateDeltas, calcWorkoutXP } from "./workoutService";
 
 const STORAGE_KEY = "myBuddy";

@@ -1,4 +1,3 @@
-// src/pages/LogWorkoutPage.jsx
 import { useEffect, useMemo, useState } from "react";
 import useQuery from "../api/useQuery";
 import { useNavigate } from "react-router-dom";

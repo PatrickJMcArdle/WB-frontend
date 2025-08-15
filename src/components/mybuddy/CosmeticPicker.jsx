@@ -1,4 +1,3 @@
-// src/components/mybuddy/CosmeticPicker.jsx
 export default function CosmeticPicker({
   buddy,
   onChangeCosmetic, // (key, value) => void

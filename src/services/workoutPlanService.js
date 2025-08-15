@@ -1,4 +1,3 @@
-// src/services/workoutPlanService.js
 const KEY = "userWorkoutPlans_v1";
 
 export function loadPlans() {

@@ -1,4 +1,3 @@
-// src/pages/MyBuddyPage.jsx
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import XPBar from "../components/XPBar";
