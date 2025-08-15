@@ -13,7 +13,6 @@ import AdminPage from "./pages/AdminPage";
 import ProfilePage from "./account/ProfilePage";
 import FrontPage from "./guest/LoginPage";
 import GuestPage from "./guest/GuestHome";
-import LogWorkoutPage from "./pages/LogWorkoutPage";
 import WorkoutPlannerPage from "./pages/WorkoutPlannerPage";
 
 export default function App() {
@@ -33,7 +32,6 @@ export default function App() {
           <Route path="/workouts" element={<WorkoutPlannerPage />} />
           <Route path="/map" element={<MapPage />} />
           <Route path="/admin" element={<AdminPage />} />
-          <Route path="/log" element={<LogWorkoutPage />} />
         </Route>
       </Route>
     </Routes>

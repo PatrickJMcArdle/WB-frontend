@@ -7,7 +7,7 @@ export default function WorkoutForm({
     focus: "upper",
     date: new Date().toISOString().slice(0, 10),
     minutes: 30,
-    reps: 10,
+    reps: 10, // ✅ default reps
     notes: "",
   },
   focusOptions = [],
@@ -27,15 +27,12 @@ export default function WorkoutForm({
     const e = {};
     if (!form.title.trim()) e.title = "Title is required";
     if (!focusOptions.includes(form.focus)) e.focus = "Pick a valid focus";
-
     const mins = Number(form.minutes);
     if (!Number.isFinite(mins) || mins < 5 || mins > 180)
       e.minutes = "Minutes must be 5–180";
-
     const reps = Number(form.reps);
-    if (!Number.isFinite(reps) || reps < 1 || reps > 100)
-      e.reps = "Reps must be 1–100";
-
+    if (!Number.isFinite(reps) || reps < 1 || reps > 300)
+      e.reps = "Reps must be 1–300";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -124,10 +121,10 @@ export default function WorkoutForm({
           <input
             type="number"
             min={1}
-            max={100}
+            max={300}
             value={form.reps}
             onChange={(e) => update("reps", e.target.value)}
-            placeholder="Reps"
+            placeholder="Reps (total/avg)"
             style={{ width: "100%" }}
           />
           {errors.reps && (

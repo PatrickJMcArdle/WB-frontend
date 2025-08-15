@@ -191,9 +191,12 @@ function toAppearance(stats) {
 // ---------- apply a workout (updated to accept reps) ----------
 export function applyWorkout(
   buddy,
-  { focuses = [], reps = 10, minutes = 30, notes = "", intensity } // intensity kept for backward-compat
+  { focuses = [], reps = 10, minutes = 30, notes = "" } // ✅ reps instead of intensity
 ) {
-  const xpGain = calcWorkoutXP({ reps, minutes, intensity });
+  // use reps-based XP
+  const xpGain = calcWorkoutXP({ reps, minutes });
+  // ...rest of the function unchanged...
+
   const deltas = accumulateDeltas(focuses);
 
   // 1) Give XP (handles level-ups, adds statPoints)

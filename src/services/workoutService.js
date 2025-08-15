@@ -20,18 +20,13 @@ export const WORKOUT_FOCUS = {
   mobility: { strength: 0, core: 1, dexterity: 2, stamina: 0, parts: {} },
 };
 
-// XP curve: prefer reps × minutes; fallback to legacy intensity if reps is missing
-export function calcWorkoutXP({ reps, minutes, intensity } = {}) {
-  const mins = Math.max(5, Math.min(180, Number(minutes ?? 30) || 0));
-
-  if (reps != null) {
-    const r = Math.max(1, Math.min(100, Number(reps) || 1));
-    return Math.round(mins * r * 0.25); // e.g. 30min * 10reps * 0.25 = 75 XP
-  }
-
-  // legacy path
-  const i = Math.max(1, Math.min(5, Number(intensity ?? 2) || 1));
-  return Math.round(i * mins * 1.2);
+// XP curve: base by minutes * (reps/10), with light clamping.
+// e.g. 30 min, 10 reps  => 36 xp  (30 * 1.0 * 1.2)
+//      45 min, 30 reps  => 162 xp (45 * 3.0 * 1.2)
+export function calcWorkoutXP({ reps = 10, minutes = 30 }) {
+  const r = Math.max(1, Math.min(300, Number(reps) || 1)); // 1..300
+  const mins = Math.max(5, Math.min(180, Number(minutes) || 0)); // 5..180
+  return Math.round((r / 10) * mins * 1.2);
 }
 
 // Local store for logs (MVP)

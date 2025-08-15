@@ -1,10 +1,28 @@
 const KEY = "userWorkoutPlans_v1";
 
+function migrate(plans) {
+  // If an old plan has "intensity" but no "reps", convert roughly: reps ≈ intensity * 10
+  return plans.map((p) =>
+    p && typeof p === "object"
+      ? {
+          ...p,
+          reps:
+            p.reps != null
+              ? p.reps
+              : p.intensity != null
+              ? Math.max(1, Math.min(300, Math.round(Number(p.intensity) * 10)))
+              : 10,
+        }
+      : p
+  );
+}
+
 export function loadPlans() {
   try {
     const raw = localStorage.getItem(KEY);
     const arr = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? arr : [];
+    const list = Array.isArray(arr) ? arr : [];
+    return migrate(list);
   } catch {
     return [];
   }
