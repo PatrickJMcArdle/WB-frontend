@@ -1,61 +1,110 @@
-export default function AvatarPreview({ appearance, outfit }) {
-  const { arms = 0, chest = 0, legs = 0, torsoTone = 0 } = appearance || {};
-  // naive: size multipliers for parts
-  const armScale = 1 + arms * 0.06;
-  const chestScale = 1 + chest * 0.06;
-  const legScale = 1 + legs * 0.06;
-  const tone = Math.min(1, 0.6 + torsoTone * 0.07); // fill opacity as “tone”
+// src/components/mybuddy/AvatarPreview.jsx
+import {
+  HAIR_STYLES,
+  HAIR_COLORS,
+  TOPS,
+  BOTTOMS,
+} from "../../services/buddyService";
+
+function byId(list, id, fallback) {
+  return list.find((x) => x.id === id) || fallback;
+}
+function byColorId(list, id, fallback) {
+  return list.find((x) => x.id === id) || fallback;
+}
+
+export default function AvatarPreview({
+  appearance,
+  outfit, // legacy (not required by SVG)
+  cosmetics = { hairStyleId: 1, hairColorId: "brown", topId: 1, bottomId: 1 },
+}) {
+  const hair = byId(HAIR_STYLES, cosmetics.hairStyleId, HAIR_STYLES[0]);
+  const hairColor = byColorId(
+    HAIR_COLORS,
+    cosmetics.hairColorId,
+    HAIR_COLORS[0]
+  );
+  const top = byId(TOPS, cosmetics.topId, TOPS[0]);
+  const bottom = byId(BOTTOMS, cosmetics.bottomId, BOTTOMS[0]);
+
+  const colors = {
+    skin: "#f4c7a1",
+    hair:
+      hairColor.id === "black"
+        ? "#222"
+        : hairColor.id === "blonde"
+        ? "#f5d86b"
+        : hairColor.id === "red"
+        ? "#d35454"
+        : hairColor.id === "blue"
+        ? "#4a77ff"
+        : "#7b5230",
+    top:
+      top.id === 1
+        ? "#3b82f6"
+        : top.id === 2
+        ? "#475569"
+        : top.id === 3
+        ? "#8b5cf6"
+        : top.id === 4
+        ? "#22c55e"
+        : "#3b82f6",
+    bottoms:
+      bottom.id === 1
+        ? "#2db58a"
+        : bottom.id === 2
+        ? "#374151"
+        : bottom.id === 3
+        ? "#7e22ce"
+        : "#2db58a",
+  };
+
+  // hair geometry tweak by style (subtle)
+  const hairOffset = hair.id === 1 ? 0 : hair.id === 2 ? 4 : 8;
 
   return (
-    <div className="w-full aspect-[1/1] grid place-items-center bg-gray-50 rounded">
-      <svg width="220" height="220" viewBox="0 0 220 220">
-        {/* legs */}
-        <g
-          transform={`translate(110,150) scale(${legScale})`}
-          style={{ transition: "transform 160ms ease" }} //  added smooth scale
-        >
-          <rect x="-35" y="0" width="20" height="50" rx="8" fill="#b09070" />
-          <rect x="15" y="0" width="20" height="50" rx="8" fill="#b09070" />
-        </g>
-
-        {/* torso */}
-        <g
-          transform={`translate(110,110) scale(${chestScale})`}
-          style={{ transition: "transform 160ms ease" }} //  added smooth scale
-        >
-          <rect
-            x="-30"
-            y="-35"
-            width="60"
-            height="70"
-            rx="18"
-            fill="#b09070"
-            fillOpacity={tone}
-          />
-        </g>
-
-        {/* arms */}
-        <g
-          transform={`translate(110,100) scale(${armScale})`}
-          style={{ transition: "transform 160ms ease" }} //  added smooth scale
-        >
-          <rect x="-70" y="-10" width="30" height="20" rx="10" fill="#b09070" />
-          <rect x="40" y="-10" width="30" height="20" rx="10" fill="#b09070" />
-        </g>
-
+    <div
+      className="w-full grid place-items-center bg-gray-50 rounded"
+      style={{ aspectRatio: "1 / 1" }}
+    >
+      <svg width="220" height="220" viewBox="0 0 200 220">
         {/* head */}
-        <circle cx="110" cy="60" r="24" fill="#b09070" />
+        <circle cx="100" cy="60" r="30" fill={colors.skin} />
+        {/* hair */}
+        <path
+          d={`M70 ${60 - hairOffset} Q100 ${20 - hairOffset} 130 ${
+            60 - hairOffset
+          } L130 48 Q100 ${10 - hairOffset} 70 48 Z`}
+          fill={colors.hair}
+        />
 
-        {/* outfit overlay (simple) */}
-        {outfit?.spriteKey === "hoodie" && (
-          <path d="M70 75 h80 v65 h-80 z" fill="#334155" opacity="0.9" />
-        )}
-        {outfit?.spriteKey === "tank" && (
-          <path d="M75 80 h70 v40 h-70 z" fill="#ef4444" opacity="0.9" />
-        )}
-        {outfit?.spriteKey === "tee" && (
-          <path d="M75 85 h70 v35 h-70 z" fill="#3b82f6" opacity="0.85" />
-        )}
+        {/* torso (top) */}
+        <rect x="70" y="92" width="60" height="60" rx="10" fill={colors.top} />
+        {/* arms (match top color) */}
+        <rect x="54" y="96" width="16" height="14" rx="7" fill={colors.top} />
+        <rect x="130" y="96" width="16" height="14" rx="7" fill={colors.top} />
+
+        {/* legs (bottoms) */}
+        <rect
+          x="72"
+          y="152"
+          width="24"
+          height="50"
+          rx="8"
+          fill={colors.bottoms}
+        />
+        <rect
+          x="104"
+          y="152"
+          width="24"
+          height="50"
+          rx="8"
+          fill={colors.bottoms}
+        />
+
+        {/* shoes */}
+        <rect x="70" y="202" width="28" height="8" rx="3" fill="#444" />
+        <rect x="102" y="202" width="28" height="8" rx="3" fill="#444" />
       </svg>
     </div>
   );
