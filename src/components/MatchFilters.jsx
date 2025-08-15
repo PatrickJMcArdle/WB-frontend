@@ -13,12 +13,13 @@ export default function MatchFilters({
 
   return (
     <form
-      className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6"
+      className="grid grid-cols-1 md:grid-cols-6 gap-3 mb-6"
       onSubmit={(e) => {
         e.preventDefault();
         onSearch();
       }}
     >
+      {/* Who */}
       <select
         value={draftFilters.who}
         onChange={(e) => set("who", e.target.value)}
@@ -29,6 +30,7 @@ export default function MatchFilters({
         <option value="trainees">Trainees</option>
       </select>
 
+      {/* Name */}
       <input
         type="text"
         placeholder="Search by name"
@@ -37,6 +39,7 @@ export default function MatchFilters({
         className="border p-2 rounded"
       />
 
+      {/* Level */}
       <select
         value={draftFilters.level}
         onChange={(e) => set("level", e.target.value)}
@@ -50,6 +53,7 @@ export default function MatchFilters({
         ))}
       </select>
 
+      {/* Goal */}
       <select
         value={draftFilters.goal}
         onChange={(e) => set("goal", e.target.value)}
@@ -63,6 +67,7 @@ export default function MatchFilters({
         ))}
       </select>
 
+      {/* Gender */}
       <select
         value={draftFilters.gender}
         onChange={(e) => set("gender", e.target.value)}
@@ -76,6 +81,7 @@ export default function MatchFilters({
         ))}
       </select>
 
+      {/* Actions */}
       <div className="flex gap-2">
         <button
           type="submit"

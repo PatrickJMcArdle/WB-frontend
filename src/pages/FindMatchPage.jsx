@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "../auth/AuthContext";
 import MatchFilters from "../components/MatchFilters";
 import MatchResults from "../components/MatchResults";
 import useQuery from "../api/useQuery";
-import "../index.css"
-import { Link } from "react-router";
-
+import "../index.css";
+import { Link } from "react-router-dom";
 
 const LEVEL_LABELS = {
   1: "Beginner",
@@ -14,7 +13,8 @@ const LEVEL_LABELS = {
   4: "Elite Athlete",
 };
 
-const GOAL_LABELS = {
+// Fallback if /goals hasn't loaded yet:
+const GOAL_FALLBACK = {
   1: "Run a marathon",
   2: "Lose weight",
   3: "Build muscle",
@@ -26,8 +26,8 @@ const GOAL_LABELS = {
   9: "Gain strength",
   10: "General fitness & health",
 };
-const GENDER_LABELS = { 0: "Male", 1: "Female" };
 
+const GENDER_LABELS = { 0: "Male", 1: "Female" };
 const EMPTY = { who: "any", level: "", goal: "", gender: "", name: "" };
 
 export default function FindMatchPage() {
@@ -38,10 +38,16 @@ export default function FindMatchPage() {
   const [draftFilters, setDraftFilters] = useState(EMPTY);
   const [filters, setFilters] = useState(EMPTY);
 
-  // Build resource(s) based on who
-  // NOTE:
-  //   - /users/trainers/:id expects ?goal=&gender=
-  //   - /users/trainees/:id expects ?goal=&preferred_trainer=
+  // Build dynamic goal labels from backend
+  const { data: goals } = useQuery("/goals", { enabled: true, tag: "goals" });
+  const GOAL_LABELS = useMemo(() => {
+    if (!Array.isArray(goals) || goals.length === 0) return GOAL_FALLBACK;
+    const map = {};
+    goals.forEach((g) => (map[g.id] = g.description));
+    return map;
+  }, [goals]);
+
+  // /users/trainers/:id?goal=&gender=
   const trainersResource = useMemo(() => {
     if (!currentUserId) return null;
     const params = new URLSearchParams();
@@ -50,6 +56,7 @@ export default function FindMatchPage() {
     return `/users/trainers/${currentUserId}?${params.toString()}`;
   }, [filters.goal, filters.gender, currentUserId]);
 
+  // /users/trainees/:id?goal=&preferred_trainer=
   const traineesResource = useMemo(() => {
     if (!currentUserId) return null;
     const params = new URLSearchParams();
@@ -59,7 +66,6 @@ export default function FindMatchPage() {
     return `/users/trainees/${currentUserId}?${params.toString()}`;
   }, [filters.goal, filters.gender, currentUserId]);
 
-  // Fetch depending on filters.who
   const trainersQuery = useQuery(trainersResource, {
     enabled:
       !!token &&
@@ -91,7 +97,6 @@ export default function FindMatchPage() {
     const r = Array.isArray(traineesQuery.data) ? traineesQuery.data : [];
     if (filters.who === "trainers") return t;
     if (filters.who === "trainees") return r;
-    // merge and de-dup by id
     const byId = new Map();
     [...t, ...r].forEach((u) => byId.set(u.id, u));
     return Array.from(byId.values());
@@ -128,19 +133,14 @@ export default function FindMatchPage() {
       : "Find a Workout Partner";
 
   return (
-
- 
     <div className="p-4 find-page">
-        <div className="find-header-row">
-          <Link to="/home" className="find-home-btn">
-            <img src="/images/HomeIcon.png" alt="Home" />
+      <div className="find-header-row">
+        <Link to="/home" className="find-home-btn">
+          <img src="/images/HomeIcon.png" alt="Home" />
         </Link>
-    </div>
-      <h1 className="text-2xl font-bold mb-4">
-        Find a {testMode === "trainers" ? "Trainer" : "Trainee"}
-      </h1>
+      </div>
 
-
+      <h1 className="text-2xl font-bold mb-4">{title}</h1>
 
       <MatchFilters
         draftFilters={draftFilters}
@@ -148,7 +148,7 @@ export default function FindMatchPage() {
         onSearch={handleSearch}
         onClear={handleClear}
         levelLabels={LEVEL_LABELS}
-        goalLabels={GOAL_LABELS}
+        goalLabels={GOAL_LABELS} // ← dynamic from backend
         genderLabels={GENDER_LABELS}
       />
 
@@ -160,14 +160,14 @@ export default function FindMatchPage() {
           <p className="text-sm text-gray-600 mb-2">
             Showing {filtered.length} result{filtered.length === 1 ? "" : "s"}
           </p>
-        <div className="results-list">
-          <MatchResults
-            users={filtered}
-            levelLabels={LEVEL_LABELS}
-            goalLabels={GOAL_LABELS}
-            genderLabels={GENDER_LABELS}
-          />
-        </div>
+          <div className="results-list">
+            <MatchResults
+              users={filtered}
+              levelLabels={LEVEL_LABELS}
+              goalLabels={GOAL_LABELS}
+              genderLabels={GENDER_LABELS}
+            />
+          </div>
         </>
       )}
     </div>
