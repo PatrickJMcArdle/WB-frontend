@@ -19,6 +19,16 @@ export default function MatchFilters({
         onSearch();
       }}
     >
+      <select
+        value={draftFilters.who}
+        onChange={(e) => set("who", e.target.value)}
+        className="border p-2 rounded"
+      >
+        <option value="any">Anyone</option>
+        <option value="trainers">Trainers</option>
+        <option value="trainees">Trainees</option>
+      </select>
+
       <input
         type="text"
         placeholder="Search by name"

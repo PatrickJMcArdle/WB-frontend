@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../auth/AuthContext";
 import MatchFilters from "../components/MatchFilters";
 import MatchResults from "../components/MatchResults";
@@ -7,15 +7,28 @@ import "../index.css"
 import { Link } from "react-router";
 
 
-const LEVEL_LABELS = { 1: "Beginner", 2: "Intermediate", 3: "Advanced" };
+const LEVEL_LABELS = {
+  1: "Beginner",
+  2: "Intermediate",
+  3: "Advanced",
+  4: "Elite Athlete",
+};
+
 const GOAL_LABELS = {
   1: "Run a marathon",
-  2: "Lose 10 pounds",
+  2: "Lose weight",
   3: "Build muscle",
+  4: "Increase cardio endurance",
+  5: "Improve stamina",
+  6: "Tone body",
+  7: "Tone muscle",
+  8: "Improve flexibility/mobility",
+  9: "Gain strength",
+  10: "General fitness & health",
 };
 const GENDER_LABELS = { 0: "Male", 1: "Female" };
 
-const EMPTY = { level: "", goal: "", gender: "", name: "" };
+const EMPTY = { who: "any", level: "", goal: "", gender: "", name: "" };
 
 export default function FindMatchPage() {
   const { user, token } = useAuth() || {};
@@ -25,100 +38,98 @@ export default function FindMatchPage() {
   const [draftFilters, setDraftFilters] = useState(EMPTY);
   const [filters, setFilters] = useState(EMPTY);
 
-  // trainees see trainers; trainers see trainees
-  // const mode = user?.account_type === 1 ? "trainees" : "trainers";
+  // Build resource(s) based on who
+  // NOTE:
+  //   - /users/trainers/:id expects ?goal=&gender=
+  //   - /users/trainees/:id expects ?goal=&preferred_trainer=
+  const trainersResource = useMemo(() => {
+    if (!currentUserId) return null;
+    const params = new URLSearchParams();
+    if (filters.goal) params.set("goal", String(filters.goal));
+    if (filters.gender !== "") params.set("gender", String(filters.gender));
+    return `/users/trainers/${currentUserId}?${params.toString()}`;
+  }, [filters.goal, filters.gender, currentUserId]);
 
-  // ✅ Leading slash ensures absolute path with API base
-  // const resource = currentUserId ? `/users/${mode}/${currentUserId}` : null;
+  const traineesResource = useMemo(() => {
+    if (!currentUserId) return null;
+    const params = new URLSearchParams();
+    if (filters.goal) params.set("goal", String(filters.goal));
+    if (filters.gender !== "")
+      params.set("preferred_trainer", String(filters.gender));
+    return `/users/trainees/${currentUserId}?${params.toString()}`;
+  }, [filters.goal, filters.gender, currentUserId]);
 
-  const testMode = "trainers";
+  // Fetch depending on filters.who
+  const trainersQuery = useQuery(trainersResource, {
+    enabled:
+      !!token &&
+      !!trainersResource &&
+      (filters.who === "trainers" || filters.who === "any"),
+    tag: "find.trainers",
+  });
 
-  const resource = currentUserId
-    ? `/users/${testMode}/${currentUserId}?goal=&preferred_trainer=`
-    : null;
+  const traineesQuery = useQuery(traineesResource, {
+    enabled:
+      !!token &&
+      !!traineesResource &&
+      (filters.who === "trainees" || filters.who === "any"),
+    tag: "find.trainees",
+  });
 
-  console.log("[FindMatchPage] mode:", testMode);
-  console.log("[FindMatchPage] resource:", resource);
-  console.log("[FindMatchPage] token present:", !!token);
+  const loading =
+    filters.who === "any"
+      ? trainersQuery.loading || traineesQuery.loading
+      : filters.who === "trainers"
+      ? trainersQuery.loading
+      : traineesQuery.loading;
 
-  // fetch matches; returns refetch we can call on Search
-  const {
-    data: matches,
-    loading,
-    error,
-    refetch,
-  } = useQuery(resource, { enabled: !!token && !!resource, tag: "matches" });
+  const error = trainersQuery.error || traineesQuery.error;
 
-  // Click Search = apply filters + refetch (backend filters can come later)
-  const handleSearch = () => {
-    setFilters(draftFilters);
-    refetch();
-    console.log("Applied filters:", draftFilters);
-  };
+  // Merge results when "any"
+  const serverResults = useMemo(() => {
+    const t = Array.isArray(trainersQuery.data) ? trainersQuery.data : [];
+    const r = Array.isArray(traineesQuery.data) ? traineesQuery.data : [];
+    if (filters.who === "trainers") return t;
+    if (filters.who === "trainees") return r;
+    // merge and de-dup by id
+    const byId = new Map();
+    [...t, ...r].forEach((u) => byId.set(u.id, u));
+    return Array.from(byId.values());
+  }, [filters.who, trainersQuery.data, traineesQuery.data]);
 
-  const handleClear = () => {
-    setDraftFilters(EMPTY);
-    setFilters(EMPTY);
-    refetch();
-  };
-
-  // Client-side filtering until backend supports ?level=&goal=&gender=&name=
+  // Client-side filtering for name + level
   const filtered = useMemo(() => {
-    if (!Array.isArray(matches)) return [];
-    return matches.filter((t) => {
-      if (filters.level && String(t.fitness_level) !== String(filters.level))
-        return false;
-      if (filters.goal && String(t.fitness_goal) !== String(filters.goal))
-        return false;
-      if (filters.gender && String(t.gender) !== String(filters.gender))
+    const list = Array.isArray(serverResults) ? serverResults : [];
+    return list.filter((u) => {
+      if (filters.level && String(u.fitness_level) !== String(filters.level))
         return false;
       if (filters.name) {
         const q = filters.name.toLowerCase();
         const hit =
-          t.username?.toLowerCase().includes(q) ||
-          t.first_name?.toLowerCase().includes(q);
+          u.username?.toLowerCase().includes(q) ||
+          u.first_name?.toLowerCase().includes(q);
         if (!hit) return false;
       }
       return true;
     });
-  }, [matches, filters]);
+  }, [serverResults, filters.level, filters.name]);
 
-  // return (
-  //   <div className="p-4">
-  //     <h1 className="text-2xl font-bold mb-4">
-  //       Find a {mode === "trainers" ? "Trainer" : "Trainee"}
-  //     </h1>
+  const handleSearch = () => setFilters(draftFilters);
+  const handleClear = () => {
+    setDraftFilters(EMPTY);
+    setFilters(EMPTY);
+  };
 
-  //     <MatchFilters
-  //       draftFilters={draftFilters}
-  //       onDraftChange={setDraftFilters}
-  //       onSearch={handleSearch}
-  //       onClear={handleClear}
-  //       levelLabels={LEVEL_LABELS}
-  //       goalLabels={GOAL_LABELS}
-  //       genderLabels={GENDER_LABELS}
-  //     />
-
-  //     {loading && <p>Loading {mode}…</p>}
-  //     {error && <p className="text-red-600">Failed to load {mode}.</p>}
-
-  //     {!loading && !error && (
-  //       <>
-  //         <p className="text-sm text-gray-600 mb-2">
-  //           Showing {filtered.length} result{filtered.length === 1 ? "" : "s"}
-  //         </p>
-  //         <MatchResults
-  //           users={filtered}
-  //           levelLabels={LEVEL_LABELS}
-  //           goalLabels={GOAL_LABELS}
-  //           genderLabels={GENDER_LABELS}
-  //         />
-  //       </>
-  //     )}
-  //   </div>
-  // );
+  const title =
+    filters.who === "trainers"
+      ? "Find a Trainer"
+      : filters.who === "trainees"
+      ? "Find a Trainee"
+      : "Find a Workout Partner";
 
   return (
+
+ 
     <div className="p-4 find-page">
         <div className="find-header-row">
           <Link to="/home" className="find-home-btn">
@@ -128,6 +139,7 @@ export default function FindMatchPage() {
       <h1 className="text-2xl font-bold mb-4">
         Find a {testMode === "trainers" ? "Trainer" : "Trainee"}
       </h1>
+
 
 
       <MatchFilters
@@ -140,8 +152,8 @@ export default function FindMatchPage() {
         genderLabels={GENDER_LABELS}
       />
 
-      {loading && <p>Loading {testMode}…</p>}
-      {error && <p className="text-red-600">Failed to load {testMode}.</p>}
+      {loading && <p>Loading…</p>}
+      {error && <p className="text-red-600">Failed to load results.</p>}
 
       {!loading && !error && (
         <>
