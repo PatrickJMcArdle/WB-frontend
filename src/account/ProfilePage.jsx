@@ -1,10 +1,12 @@
 import { useParams } from "react-router";
 import useQuery from "../api/useQuery";
 import { useAuth } from "../auth/AuthContext";
+import { useNavigate } from "react-router";
 import "../index.css"
 
 export default function ProfilePage() {
-  const { id } = useParams()
+  const navigate = useNavigate();
+  const { id } = useParams();
   const { token } = useAuth();
   const {
     data: user,
@@ -54,10 +56,10 @@ export default function ProfilePage() {
           </ul>
         </div>
         <div className="profile-bottom-buttons">
-          <div className="settings-button">
+          <div className="settings-button" onClick={() => navigate("/settings")}>
             <img src="/images/SettingsIcon.png" alt="Settings" />
           </div>
-          <div className="home-button">
+          <div className="home-button" onClick={() => navigate("/home")}>
             <img src="/images/HomeIcon.png" alt="Home" />
           </div>
         </div>

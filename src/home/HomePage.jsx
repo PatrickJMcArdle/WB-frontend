@@ -70,7 +70,7 @@ export default function HomePage() {
 
 
       <nav className="nav-icon">
-        <div className="nav-button">
+        <div className="nav-button" onClick={() => navigate("/map")}>
             <div className="nav-item">
                 <img src="/images/MapIcon.png" alt="Map" />
                 <span>Map</span>
