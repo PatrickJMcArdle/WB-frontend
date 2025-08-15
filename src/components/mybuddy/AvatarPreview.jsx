@@ -1,4 +1,3 @@
-// src/components/mybuddy/AvatarPreview.jsx
 import {
   HAIR_STYLES,
   HAIR_COLORS,

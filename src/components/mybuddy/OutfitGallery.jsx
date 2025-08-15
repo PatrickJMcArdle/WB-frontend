@@ -1,4 +1,3 @@
-// src/components/mybuddy/OutfitGallery.jsx
 export default function OutfitGallery({
   outfits,
   unlocked,
