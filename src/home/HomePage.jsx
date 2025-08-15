@@ -35,7 +35,7 @@ export default function HomePage() {
   return (
     <div className="home-page">
       <div className="top-buttons">
-        <div>buddy</div>
+        <div onClick={() => {navigate("/buddy")}}>buddy</div>
         <div className="icon-message">
           <img src="/images/MessagingIcon.png" alt="Messages" />
         </div>
@@ -74,13 +74,6 @@ export default function HomePage() {
             <div className="nav-item">
                 <img src="/images/MapIcon.png" alt="Map" />
                 <span>Map</span>
-            </div>
-        </div>
-        
-        <div className="nav-button" onClick={() => navigate(`/profile/${user.id}`)}>
-            <div className="nav-item">
-                <img src="/images/ProfileIcon.png" alt="Profile" />
-                <span>Profile</span>
             </div>
         </div>
 
