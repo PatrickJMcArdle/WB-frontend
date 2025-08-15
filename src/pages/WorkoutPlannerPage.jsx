@@ -9,12 +9,13 @@ import {
   setCompleted,
 } from "../services/workoutPlanService";
 import {
+  WORKOUT_FOCUS,
   calcWorkoutXP,
   accumulateDeltas,
-  FOCUS_OPTIONS,
 } from "../services/workoutService";
 import { loadBuddy, saveBuddy, awardXP } from "../services/buddyService";
 
+const FOCUS_OPTIONS = Object.keys(WORKOUT_FOCUS);
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
 export default function WorkoutPlannerPage() {
@@ -40,18 +41,30 @@ export default function WorkoutPlannerPage() {
   }, [plans, range]);
 
   function handleSave(payload) {
-    upsertPlan({ ...payload, is_completed: payload.is_completed ?? false });
+    // ensure reps present
+    const withDefaults = {
+      ...payload,
+      reps: payload.reps ?? 10,
+      is_completed: payload.is_completed ?? false,
+    };
+    upsertPlan(withDefaults);
     setPlans(loadPlans());
     setEditing(null);
   }
 
   function complete(p) {
-    const updated = setCompleted(p.id, { minutes: p.minutes, reps: p.reps });
+    const updated = setCompleted(p.id, {
+      minutes: p.minutes,
+      reps: p.reps,
+    });
     if (!updated) return;
 
     // Buddy updates
     const buddy = loadBuddy();
-    const xp = calcWorkoutXP({ minutes: updated.minutes, reps: updated.reps });
+    const xp = calcWorkoutXP({
+      minutes: updated.minutes,
+      reps: updated.reps,
+    });
     const deltas = accumulateDeltas([updated.focus]);
 
     let next = awardXP(buddy, xp);
@@ -134,7 +147,7 @@ export default function WorkoutPlannerPage() {
             focus: "upper",
             date: todayStr(),
             minutes: 30,
-            reps: 10,
+            reps: 10, // ✅ default reps
             notes: "",
           }
         }
