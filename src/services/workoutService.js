@@ -20,11 +20,13 @@ export const WORKOUT_FOCUS = {
   mobility: { strength: 0, core: 1, dexterity: 2, stamina: 0, parts: {} },
 };
 
-// very dumb xp curve: base by intensity + duration
-export function calcWorkoutXP({ intensity = 2, minutes = 30 }) {
-  const clampedI = Math.max(1, Math.min(5, Number(intensity) || 1));
-  const mins = Math.max(5, Math.min(180, Number(minutes) || 0));
-  return Math.round(clampedI * mins * 1.2); // e.g. 2 * 30 * 1.2 = 72 xp
+// XP curve: base by minutes * (reps/10), with light clamping.
+// e.g. 30 min, 10 reps  => 36 xp  (30 * 1.0 * 1.2)
+//      45 min, 30 reps  => 162 xp (45 * 3.0 * 1.2)
+export function calcWorkoutXP({ reps = 10, minutes = 30 }) {
+  const r = Math.max(1, Math.min(300, Number(reps) || 1)); // 1..300
+  const mins = Math.max(5, Math.min(180, Number(minutes) || 0)); // 5..180
+  return Math.round((r / 10) * mins * 1.2);
 }
 
 // Local store for logs (MVP)
@@ -65,3 +67,5 @@ export function accumulateDeltas(focuses = []) {
   });
   return out;
 }
+
+export const FOCUS_OPTIONS = Object.keys(WORKOUT_FOCUS);

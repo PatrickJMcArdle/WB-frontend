@@ -1,8 +1,43 @@
-// src/services/buddyService.js
 import { accumulateDeltas, calcWorkoutXP } from "./workoutService";
 
 const STORAGE_KEY = "myBuddy";
 
+// ===== Cosmetic catalogs (new) =====
+export const HAIR_STYLES = [
+  { id: 1, name: "Short", minLevel: 1, spriteKey: "hair_short" },
+  { id: 2, name: "Medium", minLevel: 2, spriteKey: "hair_medium" },
+  { id: 3, name: "Long", minLevel: 4, spriteKey: "hair_long" },
+];
+
+export const HAIR_COLORS = [
+  { id: "brown", name: "Brown", minLevel: 1 },
+  { id: "black", name: "Black", minLevel: 1 },
+  { id: "blonde", name: "Blonde", minLevel: 2 },
+  { id: "red", name: "Red", minLevel: 3 },
+  { id: "blue", name: "Blue", minLevel: 5 },
+];
+
+export const TOPS = [
+  { id: 1, name: "Starter Tee", minLevel: 1, spriteKey: "tee" },
+  { id: 2, name: "Gym Hoodie", minLevel: 3, spriteKey: "hoodie" },
+  { id: 3, name: "Pro Tank", minLevel: 5, spriteKey: "tank" },
+  { id: 4, name: "Compression Top", minLevel: 7, spriteKey: "comp" },
+];
+
+export const BOTTOMS = [
+  { id: 1, name: "Shorts", minLevel: 1, spriteKey: "shorts" },
+  { id: 2, name: "Joggers", minLevel: 3, spriteKey: "joggers" },
+  { id: 3, name: "Pro Tights", minLevel: 6, spriteKey: "tights" },
+];
+
+// ===== Legacy outfits (kept for OutfitGallery) =====
+export const OUTFITS = [
+  { id: 1, name: "Starter Tee", minLevel: 1, spriteKey: "tee" },
+  { id: 2, name: "Gym Hoodie", minLevel: 3, spriteKey: "hoodie" },
+  { id: 3, name: "Pro Tank", minLevel: 5, spriteKey: "tank" },
+];
+
+// ===== Default model (extended) =====
 export const DEFAULT = {
   userId: 1,
   level: 1,
@@ -10,23 +45,53 @@ export const DEFAULT = {
   statPoints: 0,
   stats: { strength: 0, dexterity: 0, stamina: 0, core: 0 },
   appearance: { arms: 0, chest: 0, legs: 0, torsoTone: 0 },
+
+  // legacy outfits for your existing gallery
   equippedOutfitId: 1,
   unlockedOutfitIds: [1],
+
+  // NEW: cosmetics & unlocks
+  cosmetics: {
+    hairStyleId: 1,
+    hairColorId: "brown",
+    topId: 1,
+    bottomId: 1,
+  },
+  unlocked: {
+    hairStyleIds: [1],
+    hairColorIds: ["brown", "black"],
+    topIds: [1],
+    bottomIds: [1],
+  },
+
   lastWorkout: null,
 };
 
-export const OUTFITS = [
-  { id: 1, name: "Starter Tee", minLevel: 1, spriteKey: "tee" },
-  { id: 2, name: "Gym Hoodie", minLevel: 3, spriteKey: "hoodie" },
-  { id: 3, name: "Pro Tank", minLevel: 5, spriteKey: "tank" },
-];
-
 // ---------- storage ----------
+function mergeDefaults(saved) {
+  const s = saved || {};
+  return {
+    ...DEFAULT,
+    ...s,
+    stats: { ...DEFAULT.stats, ...(s.stats || {}) },
+    appearance: { ...DEFAULT.appearance, ...(s.appearance || {}) },
+    cosmetics: { ...DEFAULT.cosmetics, ...(s.cosmetics || {}) },
+    unlocked: {
+      hairStyleIds: s.unlocked?.hairStyleIds || DEFAULT.unlocked.hairStyleIds,
+      hairColorIds: s.unlocked?.hairColorIds || DEFAULT.unlocked.hairColorIds,
+      topIds: s.unlocked?.topIds || DEFAULT.unlocked.topIds,
+      bottomIds: s.unlocked?.bottomIds || DEFAULT.unlocked.bottomIds,
+    },
+    unlockedOutfitIds: s.unlockedOutfitIds || DEFAULT.unlockedOutfitIds,
+    equippedOutfitId: s.equippedOutfitId ?? DEFAULT.equippedOutfitId,
+  };
+}
+
 export function loadBuddy() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : null;
-    return parsed ? { ...DEFAULT, ...parsed } : { ...DEFAULT };
+    return mergeDefaults(parsed);
   } catch {
     return { ...DEFAULT };
   }
@@ -41,6 +106,20 @@ export function saveBuddy(b) {
 export function nextLevelXP(level) {
   return Math.round(100 * Math.pow(level, 1.5));
 }
+
+function unlockedHair(level) {
+  return HAIR_STYLES.filter((h) => h.minLevel <= level).map((h) => h.id);
+}
+function unlockedHairColors(level) {
+  return HAIR_COLORS.filter((c) => c.minLevel <= level).map((c) => c.id);
+}
+function unlockedTops(level) {
+  return TOPS.filter((t) => t.minLevel <= level).map((t) => t.id);
+}
+function unlockedBottoms(level) {
+  return BOTTOMS.filter((b) => b.minLevel <= level).map((b) => b.id);
+}
+
 export function awardXP(buddy, amount) {
   let b = { ...buddy, xp: buddy.xp + (Number(amount) || 0) };
   let next = nextLevelXP(b.level);
@@ -50,14 +129,43 @@ export function awardXP(buddy, amount) {
     b.level += 1;
     b.statPoints += 5;
 
-    // unlock outfits when reaching new level
-    const unlocks = OUTFITS.filter((o) => o.minLevel <= b.level).map(
+    // legacy outfits (kept)
+    const outfitUnlocks = OUTFITS.filter((o) => o.minLevel <= b.level).map(
       (o) => o.id
     );
     b.unlockedOutfitIds = Array.from(
-      new Set([...(b.unlockedOutfitIds || []), ...unlocks])
+      new Set([...(b.unlockedOutfitIds || []), ...outfitUnlocks])
     );
     if (!b.equippedOutfitId) b.equippedOutfitId = 1;
+
+    // NEW: cosmetics unlocks
+    b.unlocked = {
+      hairStyleIds: Array.from(
+        new Set([...(b.unlocked?.hairStyleIds || []), ...unlockedHair(b.level)])
+      ),
+      hairColorIds: Array.from(
+        new Set([
+          ...(b.unlocked?.hairColorIds || []),
+          ...unlockedHairColors(b.level),
+        ])
+      ),
+      topIds: Array.from(
+        new Set([...(b.unlocked?.topIds || []), ...unlockedTops(b.level)])
+      ),
+      bottomIds: Array.from(
+        new Set([...(b.unlocked?.bottomIds || []), ...unlockedBottoms(b.level)])
+      ),
+    };
+
+    // ensure equipped cosmetics are valid (fallbacks)
+    if (!b.unlocked.hairStyleIds.includes(b.cosmetics?.hairStyleId))
+      b.cosmetics = { ...(b.cosmetics || {}), hairStyleId: 1 };
+    if (!b.unlocked.hairColorIds.includes(b.cosmetics?.hairColorId))
+      b.cosmetics = { ...(b.cosmetics || {}), hairColorId: "brown" };
+    if (!b.unlocked.topIds.includes(b.cosmetics?.topId))
+      b.cosmetics = { ...(b.cosmetics || {}), topId: 1 };
+    if (!b.unlocked.bottomIds.includes(b.cosmetics?.bottomId))
+      b.cosmetics = { ...(b.cosmetics || {}), bottomId: 1 };
 
     next = nextLevelXP(b.level);
   }
@@ -68,7 +176,6 @@ export function awardXP(buddy, amount) {
 function toAppearance(stats) {
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
   const s = stats || DEFAULT.stats;
-
   return {
     arms: clamp(Math.floor((s.strength || 0) / 2), 0, 5),
     chest: clamp(Math.floor(((s.strength || 0) + (s.core || 0)) / 3), 0, 5),
@@ -81,25 +188,21 @@ function toAppearance(stats) {
   };
 }
 
-// ---------- apply a workout (auto‑allocate points) ----------
-/**
- * applyWorkout(buddy, { focuses[], intensity, minutes, notes })
- * - Calculates XP from intensity/minutes
- * - Awards XP (level ups + statPoints)
- * - Auto-spends *new* statPoints across stats based on selected focuses
- * - Recomputes appearance and nudges focused parts slightly
- */
+// ---------- apply a workout (updated to accept reps) ----------
 export function applyWorkout(
   buddy,
-  { focuses = [], intensity = 2, minutes = 30, notes = "" }
+  { focuses = [], reps = 10, minutes = 30, notes = "" } // ✅ reps instead of intensity
 ) {
-  const xpGain = calcWorkoutXP({ intensity, minutes });
+  // use reps-based XP
+  const xpGain = calcWorkoutXP({ reps, minutes });
+  // ...rest of the function unchanged...
+
   const deltas = accumulateDeltas(focuses);
 
   // 1) Give XP (handles level-ups, adds statPoints)
   let updated = awardXP(buddy, xpGain);
 
-  // 2) Auto-spend the statPoints proportionally to focus weights
+  // 2) Auto-spend the NEW statPoints proportionally to focus weights
   let toSpend = updated.statPoints;
   const weights = {
     strength: deltas.strength || 0,
@@ -115,14 +218,12 @@ export function applyWorkout(
   const add = (obj, key, n) => (obj[key] = (obj[key] || 0) + n);
   const newStats = { ...(updated.stats || DEFAULT.stats) };
 
-  // first pass: proportional allocation
   ["strength", "dexterity", "stamina", "core"].forEach((key) => {
     if (!toSpend) return;
     const share = Math.round((weights[key] / total) * toSpend);
     if (share > 0) add(newStats, key, share);
   });
 
-  // recompute leftover due to rounding; dump into highest-weight stat
   const spent =
     newStats.strength +
     newStats.dexterity +
@@ -132,21 +233,20 @@ export function applyWorkout(
       updated.stats.dexterity +
       updated.stats.stamina +
       updated.stats.core);
+
   let leftover = Math.max(0, toSpend - spent);
   if (leftover > 0) {
     const best =
       Object.entries(weights).sort((a, b) => b[1] - a[1])[0]?.[0] || "strength";
     add(newStats, best, leftover);
-    leftover = 0;
   }
 
   updated = { ...updated, stats: newStats, statPoints: 0 };
 
-  // 3) Recompute appearance from stats + nudge parts from the workout focus
+  // 3) Recompute appearance + gentle part nudges from workout focus
   const baseApp = toAppearance(updated.stats);
   const nudged = { ...baseApp };
   const partNudges = deltas.parts || {};
-  // tiny additive bump capped at 5
   Object.entries(partNudges).forEach(([k, v]) => {
     nudged[k] = Math.min(5, (nudged[k] || 0) + v * 0.2);
   });
@@ -157,7 +257,7 @@ export function applyWorkout(
     lastWorkout: {
       when: Date.now(),
       focuses,
-      intensity,
+      reps,
       minutes,
       notes,
       xpGain,

@@ -1,4 +1,3 @@
-// src/components/mybuddy/StatAllocation.jsx
 const LABELS = {
   strength: "Strength",
   dexterity: "Dexterity",

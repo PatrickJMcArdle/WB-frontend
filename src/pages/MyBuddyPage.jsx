@@ -3,29 +3,75 @@ import { Link } from "react-router-dom";
 import XPBar from "../components/XPBar";
 import AvatarPreview from "../components/mybuddy/AvatarPreview";
 import StatAllocation from "../components/mybuddy/StatAllocation";
-import OutfitGallery from "../components/mybuddy/OutfitGallery";
+import OutfitGallery from "../components/mybuddy/OutfitGallery"; // optional keep
+import CosmeticPicker from "../components/mybuddy/CosmeticPicker";
 import {
   awardXP,
   loadBuddy,
   saveBuddy,
   nextLevelXP,
   OUTFITS,
+  HAIR_STYLES,
+  HAIR_COLORS,
+  TOPS,
+  BOTTOMS,
 } from "../services/buddyService";
 
+const SHOW_DEV =
+  typeof import.meta !== "undefined" &&
+  import.meta.env &&
+  import.meta.env.VITE_SHOW_DEV === "true";
+
 export default function MyBuddyPage() {
-  // Lazy init so loadBuddy() runs once on mount (critical fix)
+  // load once
   const [buddy, setBuddy] = useState(() => loadBuddy());
 
-  // persist to localStorage whenever the buddy changes
+  // persist on change
   useEffect(() => {
     saveBuddy(buddy);
   }, [buddy]);
 
-  // Memoize equipped outfit (micro perf & cleaner render)
+  // legacy "equipped" for your old outfit overlay (optional)
   const equipped = useMemo(
     () => OUTFITS.find((o) => o.id === buddy.equippedOutfitId) || null,
     [buddy.equippedOutfitId]
   );
+
+  // Admin/dev helper (hidden by default)
+  const addXP = (amt) =>
+    setBuddy((prev) => {
+      const before = prev.level;
+      const next = awardXP(prev, amt);
+      if (next.level > before) {
+        console.log(`Level Up! Reached level ${next.level} (+5 stat points)`);
+      }
+      return next;
+    });
+  const resetBuddy = () => {
+    setBuddy({
+      userId: 1,
+      level: 1,
+      xp: 0,
+      statPoints: 0,
+      stats: { strength: 0, dexterity: 0, stamina: 0, core: 0 },
+      appearance: { arms: 0, chest: 0, legs: 0, torsoTone: 0 },
+      equippedOutfitId: 1,
+      unlockedOutfitIds: [1],
+      cosmetics: {
+        hairStyleId: 1,
+        hairColorId: "brown",
+        topId: 1,
+        bottomId: 1,
+      },
+      unlocked: {
+        hairStyleIds: [1],
+        hairColorIds: ["brown", "black"],
+        topIds: [1],
+        bottomIds: [1],
+      },
+      lastWorkout: null,
+    });
+  };
 
   const onSpendPoint = (key) => {
     if (!["strength", "dexterity", "stamina", "core"].includes(key)) return;
@@ -41,34 +87,11 @@ export default function MyBuddyPage() {
     });
   };
 
-  const onEquipOutfit = (id) => {
-    if (!buddy.unlockedOutfitIds.includes(id)) return;
-    setBuddy((prev) => ({ ...prev, equippedOutfitId: id }));
-  };
-
-  // simulate XP gain (dev helper)
-  const addXP = (amt) =>
-    setBuddy((prev) => {
-      const before = prev.level;
-      const next = awardXP(prev, amt);
-      if (next.level > before) {
-        console.log(`Level Up! Reached level ${next.level} (+5 stat points)`);
-      }
-      return next;
-    });
-
-  // dev helper to reset local progress
-  const resetBuddy = () => {
-    setBuddy({
-      userId: 1,
-      level: 1,
-      xp: 0,
-      statPoints: 0,
-      stats: { strength: 0, dexterity: 0, stamina: 0, core: 0 },
-      appearance: { arms: 0, chest: 0, legs: 0, torsoTone: 0 },
-      equippedOutfitId: null,
-      unlockedOutfitIds: [1],
-    });
+  const onChangeCosmetic = (key, value) => {
+    setBuddy((prev) => ({
+      ...prev,
+      cosmetics: { ...prev.cosmetics, [key]: value },
+    }));
   };
 
   return (
@@ -79,26 +102,34 @@ export default function MyBuddyPage() {
 
         <XPBar current={buddy.xp} target={nextLevelXP(buddy.level)} />
 
-        {/* Controls row: dev actions + Log workout */}
-        <div className="space-x-3 mt-2">
-          <button onClick={() => addXP(50)} className="text-xs underline">
-            +50 XP (dev)
-          </button>
-          <button
-            onClick={resetBuddy}
-            className="text-xs text-red-600 underline"
-          >
-            Reset Buddy (dev)
-          </button>
+        {/* Only show dev tools if explicitly enabled via .env */}
+        {SHOW_DEV && (
+          <div className="space-x-3 mt-2">
+            <button onClick={() => addXP(50)} className="text-xs underline">
+              +50 XP (dev)
+            </button>
+            <button
+              onClick={resetBuddy}
+              className="text-xs text-red-600 underline"
+            >
+              Reset Buddy (dev)
+            </button>
+          </div>
+        )}
 
-          {/* NEW: navigate to workout logger */}
-          <Link to="/log">
-            <button className="text-xs underline">Log workout</button>
+        {/* Source of XP for normal users */}
+        <div className="mt-2">
+          <Link to="/workouts" className="text-xs underline">
+            Open Workout Planner
           </Link>
         </div>
 
         <div className="mt-4">
-          <AvatarPreview appearance={buddy.appearance} outfit={equipped} />
+          <AvatarPreview
+            appearance={buddy.appearance}
+            outfit={equipped} // optional, legacy overlay support
+            cosmetics={buddy.cosmetics} // NEW: drives the improved SVG
+          />
         </div>
       </section>
 
@@ -114,12 +145,29 @@ export default function MyBuddyPage() {
         </div>
 
         <div className="border rounded p-4 bg-white">
-          <h2 className="font-semibold mb-2">Outfits</h2>
+          <h2 className="font-semibold mb-2">Customize</h2>
+          <CosmeticPicker
+            buddy={buddy}
+            onChangeCosmetic={onChangeCosmetic}
+            catalogs={{
+              hairStyles: HAIR_STYLES,
+              hairColors: HAIR_COLORS,
+              tops: TOPS,
+              bottoms: BOTTOMS,
+            }}
+          />
+        </div>
+
+        {/* Optional: keep the old outfit gallery if you want */}
+        <div className="border rounded p-4 bg-white">
+          <h2 className="font-semibold mb-2">Legacy Outfits</h2>
           <OutfitGallery
             outfits={OUTFITS}
             unlocked={buddy.unlockedOutfitIds}
             equippedId={buddy.equippedOutfitId}
-            onEquip={onEquipOutfit}
+            onEquip={(id) =>
+              setBuddy((prev) => ({ ...prev, equippedOutfitId: id }))
+            }
           />
         </div>
       </section>
@@ -127,7 +175,7 @@ export default function MyBuddyPage() {
   );
 }
 
-/** Map stats → body appearance (simple, tweak later) */
+/** Map stats → body appearance (simple) */
 function mapStatsToAppearance(stats) {
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
   return {

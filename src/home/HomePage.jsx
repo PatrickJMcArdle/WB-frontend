@@ -8,6 +8,7 @@ export default function HomePage() {
   const navigate = useNavigate();
 
   const [showMap, setShowMap] = useState(false);
+  console.log("Show map:", showMap);
 
   const [goals, setGoals] = useState([
     { text: "RDL", completed: false },
@@ -35,7 +36,13 @@ export default function HomePage() {
   return (
     <div className="home-page">
       <div className="top-buttons">
-        <div>buddy</div>
+        <div
+          onClick={() => {
+            navigate("/buddy");
+          }}
+        >
+          buddy
+        </div>
         <div className="icon-message">
           <img src="/images/MessagingIcon.png" alt="Messages" />
         </div>
@@ -63,7 +70,11 @@ export default function HomePage() {
         ))}
       </ul>
 
-      <button className="saved-btn">Saved Workouts</button>
+      {/* CHANGED: navigate to planner */}
+      <button className="saved-btn" onClick={() => navigate("/workouts")}>
+        Saved Workouts
+      </button>
+
       <button className="gym-btn" onClick={() => setShowMap(true)}>
         Find Gym Near Me
       </button>
@@ -71,12 +82,12 @@ export default function HomePage() {
 
       <nav className="nav-icon">
         <div className="nav-button" onClick={() => navigate("/map")}>
-            <div className="nav-item">
-                <img src="/images/MapIcon.png" alt="Map" />
-                <span>Map</span>
-            </div>
+          <div className="nav-item">
+            <img src="/images/MapIcon.png" alt="Map" />
+            <span>Map</span>
+          </div>
         </div>
-        
+
         <div
           className="nav-button"
           onClick={() => navigate(`/profile/${user.id}`)}
@@ -93,13 +104,12 @@ export default function HomePage() {
             <span>Home</span>
           </div>
         </div>
-        
-        <div className="nav-button" onClick={() => navigate("/find")}>
-            <div className="nav-item">
-                <img src="/images/MagnifyingGlassIcon.png" alt="Find" />
-                <span>Find</span>
-            </div>
 
+        <div className="nav-button" onClick={() => navigate("/find")}>
+          <div className="nav-item">
+            <img src="/images/MagnifyingGlassIcon.png" alt="Find" />
+            <span>Find</span>
+          </div>
         </div>
 
         <div className="nav-button" onClick={() => navigate("/")}>
