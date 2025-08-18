@@ -4,10 +4,11 @@ export default function WorkoutForm({
   initial = {
     id: null,
     title: "",
-    focus: "upper",
+    focuses: [], // <- multi
     date: new Date().toISOString().slice(0, 10),
     minutes: 30,
-    reps: 10, // ✅ default reps
+    reps: 15,
+    sets: 3,
     notes: "",
   },
   focusOptions = [],
@@ -23,16 +24,29 @@ export default function WorkoutForm({
     setForm((f) => ({ ...f, [key]: val }));
   }
 
+  function toggleFocus(key) {
+    setForm((f) => {
+      const cur = new Set(f.focuses || []);
+      if (cur.has(key)) cur.delete(key);
+      else cur.add(key);
+      return { ...f, focuses: Array.from(cur) };
+    });
+  }
+
   function validate() {
     const e = {};
     if (!form.title.trim()) e.title = "Title is required";
-    if (!focusOptions.includes(form.focus)) e.focus = "Pick a valid focus";
+    if (!Array.isArray(form.focuses) || form.focuses.length === 0)
+      e.focuses = "Pick at least one focus";
     const mins = Number(form.minutes);
     if (!Number.isFinite(mins) || mins < 5 || mins > 180)
       e.minutes = "Minutes must be 5–180";
     const reps = Number(form.reps);
-    if (!Number.isFinite(reps) || reps < 1 || reps > 300)
-      e.reps = "Reps must be 1–300";
+    if (!Number.isFinite(reps) || reps < 1 || reps > 50)
+      e.reps = "Reps must be 1–50";
+    const sets = Number(form.sets);
+    if (!Number.isFinite(sets) || sets < 1 || sets > 10)
+      e.sets = "Sets must be 1–10";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -45,6 +59,8 @@ export default function WorkoutForm({
       title: form.title.trim(),
       minutes: Math.round(Number(form.minutes)),
       reps: Math.round(Number(form.reps)),
+      sets: Math.round(Number(form.sets)),
+      focuses: Array.from(new Set(form.focuses || [])),
     };
     onSave?.(payload);
   }
@@ -62,7 +78,7 @@ export default function WorkoutForm({
         style={{
           display: "grid",
           gap: 8,
-          gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr",
+          gridTemplateColumns: "2fr 1fr 1fr 1fr",
         }}
       >
         <div>
@@ -74,23 +90,6 @@ export default function WorkoutForm({
           />
           {errors.title && (
             <div style={{ color: "crimson", fontSize: 12 }}>{errors.title}</div>
-          )}
-        </div>
-
-        <div>
-          <select
-            value={form.focus}
-            onChange={(e) => update("focus", e.target.value)}
-            style={{ width: "100%" }}
-          >
-            {focusOptions.map((f) => (
-              <option key={f} value={f}>
-                {f}
-              </option>
-            ))}
-          </select>
-          {errors.focus && (
-            <div style={{ color: "crimson", fontSize: 12 }}>{errors.focus}</div>
           )}
         </div>
 
@@ -117,18 +116,76 @@ export default function WorkoutForm({
           )}
         </div>
 
+        <div />
+      </div>
+
+      {/* Multi-focus checkbox grid */}
+      <div style={{ marginTop: 8 }}>
+        <div style={{ fontWeight: 600, marginBottom: 6 }}>Focus Areas</div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+            gap: 6,
+          }}
+        >
+          {focusOptions.map((f) => {
+            const checked = form.focuses?.includes(f);
+            return (
+              <label
+                key={f}
+                style={{ display: "flex", gap: 6, alignItems: "center" }}
+              >
+                <input
+                  type="checkbox"
+                  checked={!!checked}
+                  onChange={() => toggleFocus(f)}
+                />
+                <span style={{ textTransform: "capitalize" }}>{f}</span>
+              </label>
+            );
+          })}
+        </div>
+        {errors.focuses && (
+          <div style={{ color: "crimson", fontSize: 12 }}>{errors.focuses}</div>
+        )}
+      </div>
+
+      {/* Volume inputs */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 8,
+          marginTop: 8,
+        }}
+      >
         <div>
           <input
             type="number"
             min={1}
-            max={300}
+            max={50}
             value={form.reps}
             onChange={(e) => update("reps", e.target.value)}
-            placeholder="Reps (total/avg)"
+            placeholder="Reps (e.g., 15)"
             style={{ width: "100%" }}
           />
           {errors.reps && (
             <div style={{ color: "crimson", fontSize: 12 }}>{errors.reps}</div>
+          )}
+        </div>
+        <div>
+          <input
+            type="number"
+            min={1}
+            max={10}
+            value={form.sets}
+            onChange={(e) => update("sets", e.target.value)}
+            placeholder="Sets (e.g., 3)"
+            style={{ width: "100%" }}
+          />
+          {errors.sets && (
+            <div style={{ color: "crimson", fontSize: 12 }}>{errors.sets}</div>
           )}
         </div>
       </div>

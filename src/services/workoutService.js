@@ -1,6 +1,6 @@
-// Simple rules to translate a workout -> stat deltas + xp
-// Tweak weights anytime.
+// Broadened catalog (maps to the same 4 stats + body parts)
 export const WORKOUT_FOCUS = {
+  // legacy aliases (for compatibility)
   upper: {
     strength: 2,
     core: 1,
@@ -9,6 +9,25 @@ export const WORKOUT_FOCUS = {
     parts: { arms: 1, chest: 1 },
   },
   lower: { strength: 1, core: 0, dexterity: 0, stamina: 2, parts: { legs: 1 } },
+
+  // new explicit targets
+  arms: { strength: 2, core: 0, dexterity: 1, stamina: 0, parts: { arms: 1 } },
+  chest: {
+    strength: 2,
+    core: 1,
+    dexterity: 0,
+    stamina: 0,
+    parts: { chest: 1 },
+  },
+  shoulders: {
+    strength: 2,
+    core: 0,
+    dexterity: 1,
+    stamina: 0,
+    parts: { chest: 1 },
+  },
+  back: { strength: 2, core: 1, dexterity: 0, stamina: 0, parts: {} },
+  legs: { strength: 1, core: 0, dexterity: 0, stamina: 2, parts: { legs: 1 } },
   core: {
     strength: 0,
     core: 2,
@@ -16,36 +35,38 @@ export const WORKOUT_FOCUS = {
     stamina: 0,
     parts: { torsoTone: 1 },
   },
+  mobility: {
+    strength: 0,
+    core: 1,
+    dexterity: 2,
+    stamina: 0,
+    parts: { torsoTone: 1 },
+  },
   cardio: { strength: 0, core: 0, dexterity: 1, stamina: 2, parts: {} },
-  mobility: { strength: 0, core: 1, dexterity: 2, stamina: 0, parts: {} },
 };
 
-// XP curve: base by minutes * (reps/10), with light clamping.
-// e.g. 30 min, 10 reps  => 36 xp  (30 * 1.0 * 1.2)
-//      45 min, 30 reps  => 162 xp (45 * 3.0 * 1.2)
-export function calcWorkoutXP({ reps = 10, minutes = 30 }) {
-  const r = Math.max(1, Math.min(300, Number(reps) || 1)); // 1..300
-  const mins = Math.max(5, Math.min(180, Number(minutes) || 0)); // 5..180
-  return Math.round((r / 10) * mins * 1.2);
+export const FOCUS_OPTIONS = [
+  "arms",
+  "chest",
+  "shoulders",
+  "back",
+  "legs",
+  "core",
+  "mobility",
+  "cardio",
+];
+
+// XP from minutes + volume (reps × sets). Tunable.
+export function calcWorkoutXP({ minutes = 30, reps = 10, sets = 3 }) {
+  const mins = Math.max(5, Math.min(180, Number(minutes) || 0));
+  const r = Math.max(1, Math.min(50, Number(reps) || 1));
+  const s = Math.max(1, Math.min(10, Number(sets) || 1));
+  const baseFromTime = mins * 1.2;
+  const baseFromVolume = r * s * 0.6;
+  return Math.round(baseFromTime + baseFromVolume);
 }
 
-// Local store for logs (MVP)
-const LOGS_KEY = "workoutLogs";
-export function loadLogs() {
-  try {
-    const raw = localStorage.getItem(LOGS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-export function saveLogs(logs) {
-  try {
-    localStorage.setItem(LOGS_KEY, JSON.stringify(logs));
-  } catch {}
-}
-
-// Convert checked focuses -> accumulated deltas
+// Convert multiple focuses -> accumulated deltas
 export function accumulateDeltas(focuses = []) {
   const out = {
     strength: 0,
@@ -68,4 +89,18 @@ export function accumulateDeltas(focuses = []) {
   return out;
 }
 
-export const FOCUS_OPTIONS = Object.keys(WORKOUT_FOCUS);
+// (Optional) legacy local log helpers
+const LOGS_KEY = "workoutLogs";
+export function loadLogs() {
+  try {
+    const raw = localStorage.getItem(LOGS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+export function saveLogs(logs) {
+  try {
+    localStorage.setItem(LOGS_KEY, JSON.stringify(logs));
+  } catch {}
+}
