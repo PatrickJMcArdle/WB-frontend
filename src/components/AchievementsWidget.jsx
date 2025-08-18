@@ -11,7 +11,7 @@ export default function AchievementsWidget() {
   useEffect(() => {
     let on = true;
     async function run() {
-      if (!userId || !token) return;
+      if (!userId) return;
       try {
         const list = await fetchUserAchievements(userId, token);
         if (on) setItems(Array.isArray(list) ? list : []);
@@ -20,7 +20,9 @@ export default function AchievementsWidget() {
       }
     }
     run();
-    return () => (on = false);
+    return () => {
+      on = false;
+    };
   }, [userId, token]);
 
   if (!userId) return null;

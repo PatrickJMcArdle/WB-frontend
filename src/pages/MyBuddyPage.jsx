@@ -5,6 +5,7 @@ import AvatarPreview from "../components/mybuddy/AvatarPreview";
 import StatAllocation from "../components/mybuddy/StatAllocation";
 import OutfitGallery from "../components/mybuddy/OutfitGallery";
 import CosmeticSelectors from "../components/mybuddy/CosmeticSelectors";
+import AchievementsWidget from "../components/AchievementsWidget"; // ⬅️ NEW
 import {
   loadBuddy,
   saveBuddy,
@@ -15,10 +16,12 @@ import {
 export default function MyBuddyPage() {
   const [buddy, setBuddy] = useState(() => loadBuddy());
 
+  // persist to localStorage whenever the buddy changes
   useEffect(() => {
     saveBuddy(buddy);
   }, [buddy]);
 
+  // Memoize equipped outfit (micro perf & cleaner render)
   const equipped = useMemo(
     () => OUTFITS.find((o) => o.id === buddy.equippedOutfitId) || null,
     [buddy.equippedOutfitId]
@@ -49,6 +52,7 @@ export default function MyBuddyPage() {
 
   return (
     <div className="p-4 grid gap-4 lg:grid-cols-[360px,1fr]">
+      {/* LEFT: Buddy + XP */}
       <section className="border rounded p-4 bg-white">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold mb-2">My Buddy</h1>
@@ -74,12 +78,16 @@ export default function MyBuddyPage() {
         </div>
       </section>
 
+      {/* RIGHT: Customization, Achievements, Stats, Outfits */}
       <section className="grid gap-4">
         <CosmeticSelectors
           cosmetics={buddy.cosmetics}
           unlocked={buddy.unlocked}
           onChange={onCosmeticsChange}
         />
+
+        {/* ⬇️ NEW: Achievements list + streaks unlocked on completion */}
+        <AchievementsWidget />
 
         <div className="border rounded p-4 bg-white">
           <h2 className="font-semibold mb-2">Allocate Stats</h2>
