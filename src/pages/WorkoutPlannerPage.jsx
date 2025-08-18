@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import WorkoutForm from "../components/WorkoutForm";
-import { useAuth } from "../auth/AuthContext"; // <-- make sure this exists in your app
+import { useAuth } from "../auth/AuthContext";
 import {
   loadPlans,
   savePlans,
@@ -23,9 +23,9 @@ export default function WorkoutPlannerPage() {
   const [plans, setPlans] = useState(() => loadPlans());
   const [range, setRange] = useState({ from: todayStr(), to: todayStr() });
   const [editing, setEditing] = useState(null);
-  const [unlocked, setUnlocked] = useState([]); // newly unlocked achievements (per completion)
+  const [unlocked, setUnlocked] = useState([]);
 
-  const { user, token } = useAuth() || {}; // <-- id + auth token from your context
+  const { user, token } = useAuth() || {};
   const userId = user?.id;
 
   useEffect(() => savePlans(plans), [plans]);
@@ -57,7 +57,7 @@ export default function WorkoutPlannerPage() {
   }
 
   async function complete(p) {
-    // 1) Mark the plan complete locally
+    // 1) mark complete locally
     const updated = setCompleted(p.id, {
       minutes: p.minutes,
       reps: p.reps,
@@ -65,7 +65,7 @@ export default function WorkoutPlannerPage() {
     });
     if (!updated) return;
 
-    // 2) Update Buddy (XP + stat deltas)
+    // 2) update buddy
     const buddy = loadBuddy();
     const xp = calcWorkoutXP({
       minutes: updated.minutes,
@@ -73,7 +73,6 @@ export default function WorkoutPlannerPage() {
       sets: updated.sets,
     });
     const deltas = accumulateDeltas(updated.focuses || []);
-
     let next = awardXP(buddy, xp);
     next = {
       ...next,
@@ -86,21 +85,14 @@ export default function WorkoutPlannerPage() {
     };
     saveBuddy(next);
 
-    // 3) Tell the backend a workout was completed (achievements & streaks)
+    // 3) notify backend (achievements + streaks)
     if (userId && token) {
       try {
-        const { totalWorkouts, currentStreak, newAchievements } =
-          await apiCompleteWorkout(userId, token);
-
-        // Surface newly unlocked achievements (if any) for UX feedback
+        const { newAchievements } = await apiCompleteWorkout(userId, token);
         if (Array.isArray(newAchievements) && newAchievements.length) {
           setUnlocked(newAchievements);
-          // Auto-hide after a few seconds (optional)
           setTimeout(() => setUnlocked([]), 5000);
         }
-
-        // (Optional) You could also store totalWorkouts/currentStreak somewhere UI-visible
-        // console.log({ totalWorkouts, currentStreak });
       } catch (err) {
         console.error("Failed to record workout for achievements:", err);
       }
@@ -124,7 +116,6 @@ export default function WorkoutPlannerPage() {
         <h1 style={{ margin: 0 }}>Workout Planner</h1>
       </div>
 
-      {/* “Unlocked achievements” toast-like banner */}
       {!!unlocked.length && (
         <div
           style={{

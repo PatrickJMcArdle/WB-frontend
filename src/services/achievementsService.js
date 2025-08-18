@@ -1,36 +1,40 @@
-const BASE = "/achievements";
+const API_BASE =
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) || "";
 
-function authHeaders(token) {
-  const h = { "Content-Type": "application/json" };
-  if (token) h.Authorization = `Bearer ${token}`;
-  return h;
-}
-
-export async function fetchCatalog(token) {
-  const res = await fetch(`${BASE}/`, { headers: authHeaders(token) });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+// Small helper to fail fast when the server didn’t return JSON
+function assertJSON(res) {
+  const ct = res.headers.get("content-type") || "";
+  if (!ct.includes("application/json")) {
+    throw new Error(`Expected JSON, got: ${ct}`);
+  }
 }
 
 export async function fetchUserAchievements(userId, token) {
-  const res = await fetch(`${BASE}/user/${userId}`, {
-    headers: authHeaders(token),
+  const res = await fetch(`${API_BASE}/achievements/user/${userId}`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      Accept: "application/json",
+    },
+    credentials: "include",
   });
+  assertJSON(res);
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
-/**
- * Server increments workout_sessions, computes total/streak,
- * checks unlocks, writes user_achievements if any, and returns:
- * { totalWorkouts, currentStreak, newAchievements: [ {id,name,...} ] }
- */
 export async function completeWorkout(userId, token) {
-  const res = await fetch(`${BASE}/user/${userId}/complete-workout`, {
-    method: "POST",
-    headers: authHeaders(token),
-    body: JSON.stringify({}), // body not required by your router; keep empty object
-  });
+  const res = await fetch(
+    `${API_BASE}/achievements/user/${userId}/complete-workout`,
+    {
+      method: "POST",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        Accept: "application/json",
+      },
+      credentials: "include",
+    }
+  );
+  assertJSON(res);
   if (!res.ok) throw new Error(await res.text());
-  return res.json();
+  return res.json(); // { totalWorkouts, currentStreak, newAchievements }
 }
