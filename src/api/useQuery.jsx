@@ -19,6 +19,7 @@ export default function useQuery(resource, { enabled = true, tag } = {}) {
 
   const refetch = async (signal) => {
     if (!resource || !enabled) return;
+    
     setLoading(true);
     setError(null);
     try {

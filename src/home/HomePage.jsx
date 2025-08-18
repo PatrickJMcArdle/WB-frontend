@@ -29,7 +29,7 @@ export default function HomePage() {
 
   const { data: user, loading, error } = useQuery("/home/user", "user");
 
-  if (loading || !user) return <p>Loading...</p>;
+  if (loading || !user) return <p>Loading user...</p>;
   if (error) return <p>Sorry! {error}</p>;
 
   return (
