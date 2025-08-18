@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import WorkoutForm from "../components/WorkoutForm";
+import { useAuth } from "../auth/AuthContext"; // <-- make sure this exists in your app
 import {
   loadPlans,
   savePlans,
@@ -8,8 +9,13 @@ import {
   deletePlan as removePlan,
   setCompleted,
 } from "../services/workoutPlanService";
-import { FOCUS_OPTIONS } from "../services/workoutService";
-import { loadBuddy, saveBuddy, applyWorkout } from "../services/buddyService";
+import {
+  FOCUS_OPTIONS,
+  calcWorkoutXP,
+  accumulateDeltas,
+} from "../services/workoutService";
+import { loadBuddy, saveBuddy, awardXP } from "../services/buddyService";
+import { completeWorkout as apiCompleteWorkout } from "../services/achievementsService";
 
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
@@ -17,6 +23,10 @@ export default function WorkoutPlannerPage() {
   const [plans, setPlans] = useState(() => loadPlans());
   const [range, setRange] = useState({ from: todayStr(), to: todayStr() });
   const [editing, setEditing] = useState(null);
+  const [unlocked, setUnlocked] = useState([]); // newly unlocked achievements (per completion)
+
+  const { user, token } = useAuth() || {}; // <-- id + auth token from your context
+  const userId = user?.id;
 
   useEffect(() => savePlans(plans), [plans]);
 
@@ -46,7 +56,8 @@ export default function WorkoutPlannerPage() {
     setEditing(null);
   }
 
-  function complete(p) {
+  async function complete(p) {
+    // 1) Mark the plan complete locally
     const updated = setCompleted(p.id, {
       minutes: p.minutes,
       reps: p.reps,
@@ -54,16 +65,46 @@ export default function WorkoutPlannerPage() {
     });
     if (!updated) return;
 
-    // Authoritative Buddy update (awards XP, allocates stats, updates appearance, logs lastWorkout)
+    // 2) Update Buddy (XP + stat deltas)
     const buddy = loadBuddy();
-    const next = applyWorkout(buddy, {
-      focuses: updated.focuses || [],
+    const xp = calcWorkoutXP({
       minutes: updated.minutes,
       reps: updated.reps,
       sets: updated.sets,
-      notes: updated.notes || "",
     });
+    const deltas = accumulateDeltas(updated.focuses || []);
+
+    let next = awardXP(buddy, xp);
+    next = {
+      ...next,
+      stats: {
+        strength: next.stats.strength + deltas.strength,
+        dexterity: next.stats.dexterity + deltas.dexterity,
+        stamina: next.stats.stamina + deltas.stamina,
+        core: next.stats.core + deltas.core,
+      },
+    };
     saveBuddy(next);
+
+    // 3) Tell the backend a workout was completed (achievements & streaks)
+    if (userId && token) {
+      try {
+        const { totalWorkouts, currentStreak, newAchievements } =
+          await apiCompleteWorkout(userId, token);
+
+        // Surface newly unlocked achievements (if any) for UX feedback
+        if (Array.isArray(newAchievements) && newAchievements.length) {
+          setUnlocked(newAchievements);
+          // Auto-hide after a few seconds (optional)
+          setTimeout(() => setUnlocked([]), 5000);
+        }
+
+        // (Optional) You could also store totalWorkouts/currentStreak somewhere UI-visible
+        // console.log({ totalWorkouts, currentStreak });
+      } catch (err) {
+        console.error("Failed to record workout for achievements:", err);
+      }
+    }
 
     setPlans(loadPlans());
   }
@@ -82,6 +123,30 @@ export default function WorkoutPlannerPage() {
         <Link to="/buddy">← Back to Buddy</Link>
         <h1 style={{ margin: 0 }}>Workout Planner</h1>
       </div>
+
+      {/* “Unlocked achievements” toast-like banner */}
+      {!!unlocked.length && (
+        <div
+          style={{
+            marginBottom: 12,
+            padding: 10,
+            border: "1px solid #16a34a",
+            borderRadius: 8,
+            background: "#f0fdf4",
+            color: "#166534",
+          }}
+        >
+          <strong>New achievements unlocked!</strong>
+          <ul style={{ margin: "6px 0 0 16px" }}>
+            {unlocked.map((a) => (
+              <li key={a.id}>
+                {a.name}{" "}
+                <span style={{ opacity: 0.7 }}>({a.points_awarded} pts)</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Range filter */}
       <div
