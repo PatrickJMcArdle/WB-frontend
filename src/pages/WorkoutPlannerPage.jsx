@@ -8,14 +8,9 @@ import {
   deletePlan as removePlan,
   setCompleted,
 } from "../services/workoutPlanService";
-import {
-  WORKOUT_FOCUS,
-  calcWorkoutXP,
-  accumulateDeltas,
-} from "../services/workoutService";
-import { loadBuddy, saveBuddy, awardXP } from "../services/buddyService";
+import { FOCUS_OPTIONS } from "../services/workoutService";
+import { loadBuddy, saveBuddy, applyWorkout } from "../services/buddyService";
 
-const FOCUS_OPTIONS = Object.keys(WORKOUT_FOCUS);
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
 export default function WorkoutPlannerPage() {
@@ -41,13 +36,12 @@ export default function WorkoutPlannerPage() {
   }, [plans, range]);
 
   function handleSave(payload) {
-    // ensure reps present
-    const withDefaults = {
+    const focuses = Array.isArray(payload.focuses) ? payload.focuses : [];
+    upsertPlan({
       ...payload,
-      reps: payload.reps ?? 10,
+      focuses,
       is_completed: payload.is_completed ?? false,
-    };
-    upsertPlan(withDefaults);
+    });
     setPlans(loadPlans());
     setEditing(null);
   }
@@ -56,27 +50,19 @@ export default function WorkoutPlannerPage() {
     const updated = setCompleted(p.id, {
       minutes: p.minutes,
       reps: p.reps,
+      sets: p.sets,
     });
     if (!updated) return;
 
-    // Buddy updates
+    // Authoritative Buddy update (awards XP, allocates stats, updates appearance, logs lastWorkout)
     const buddy = loadBuddy();
-    const xp = calcWorkoutXP({
+    const next = applyWorkout(buddy, {
+      focuses: updated.focuses || [],
       minutes: updated.minutes,
       reps: updated.reps,
+      sets: updated.sets,
+      notes: updated.notes || "",
     });
-    const deltas = accumulateDeltas([updated.focus]);
-
-    let next = awardXP(buddy, xp);
-    next = {
-      ...next,
-      stats: {
-        strength: next.stats.strength + deltas.strength,
-        dexterity: next.stats.dexterity + deltas.dexterity,
-        stamina: next.stats.stamina + deltas.stamina,
-        core: next.stats.core + deltas.core,
-      },
-    };
     saveBuddy(next);
 
     setPlans(loadPlans());
@@ -92,6 +78,7 @@ export default function WorkoutPlannerPage() {
           marginBottom: 12,
         }}
       >
+        <Link to="/home">← Home</Link>
         <Link to="/buddy">← Back to Buddy</Link>
         <h1 style={{ margin: 0 }}>Workout Planner</h1>
       </div>
@@ -144,10 +131,11 @@ export default function WorkoutPlannerPage() {
           editing ?? {
             id: null,
             title: "",
-            focus: "upper",
+            focuses: [],
             date: todayStr(),
             minutes: 30,
-            reps: 10, // ✅ default reps
+            reps: 15,
+            sets: 3,
             notes: "",
           }
         }
@@ -181,8 +169,15 @@ export default function WorkoutPlannerPage() {
               <strong>{p.title}</strong>
               <small>{new Date(p.date).toLocaleDateString()}</small>
             </div>
-            <div style={{ fontSize: 14, marginTop: 4 }}>
-              Focus: {p.focus} • {p.minutes} min • {p.reps} reps
+            <div
+              style={{
+                fontSize: 14,
+                marginTop: 4,
+                textTransform: "capitalize",
+              }}
+            >
+              Focus: {(p.focuses || []).join(", ") || "—"} • {p.minutes} min •{" "}
+              {p.sets} × {p.reps} reps
               {p.is_completed && (
                 <span style={{ marginLeft: 8, color: "green" }}>
                   ✓ Completed
