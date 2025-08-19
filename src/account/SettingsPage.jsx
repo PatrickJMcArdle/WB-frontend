@@ -56,7 +56,7 @@ export default function SettingsPage(){
     setVis(newVis);
     visibility({ public_profile: newVis });
   }
-  const visStatus = vis ? "public" : "private";
+  const visStatus = vis ? "Public" : "Private";
 
   // change location sharing 
   const {
