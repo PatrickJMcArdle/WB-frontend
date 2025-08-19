@@ -10,7 +10,7 @@ export default function AchievementsWidget() {
 
   useEffect(() => {
     let on = true;
-    async function run() {
+    (async () => {
       if (!userId) return;
       try {
         const list = await fetchUserAchievements(userId, token);
@@ -18,8 +18,7 @@ export default function AchievementsWidget() {
       } catch (e) {
         if (on) setErr(String(e.message || e));
       }
-    }
-    run();
+    })();
     return () => {
       on = false;
     };
