@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router"
 import useQuery from "../api/useQuery";
+import "../index.css"
 import useMutation from "../api/useMutation";
+import { useTheme } from "../ThemeProvider";
 
 export default function SettingsPage(){
-  const {toggleThemeCSS, theme} = DarkMode()
+  // const {toggleThemeCSS, theme} = DarkMode()
   const {id} = useParams();
   const navigate = useNavigate();
-  const [vis, setVis] = useState(null)
-  const [loc, setLoc] = useState(null)
-  const [notif, setNotif] = useState(null)
-  const [darkLight, setDarkLight] = useState("")
+  const [vis, setVis] = useState(true)
+  const [loc, setLoc] = useState(true)
+  const [notif, setNotif] = useState(true)
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === "D";
 
   // fetch the users settings data
   const {
@@ -40,7 +43,7 @@ export default function SettingsPage(){
 
   useEffect(() => {
     if (userSettings?.theme !== undefined) {
-      setDarkLight(userSettings.theme)
+      toggleTheme(userSettings.theme)
     }
   }, [userSettings])
 
@@ -51,12 +54,12 @@ export default function SettingsPage(){
     error: visError,
   } = useMutation("PUT", `/settings/${id}/public_profile`, ["settings"])
 
-  const toggleVis = () => {
-    const newVis = !vis
-    setVis(newVis);
-    visibility({ public_profile: newVis });
+  const toggleVis = (event) => {
+    const isChecked = event.target.checked  
+    setVis(isChecked);
+    visibility({ public_profile: isChecked });
   }
-  const visStatus = vis ? "public" : "private";
+  const visStatus = vis ? "Public" : "Private";
 
   // change location sharing 
   const {
@@ -65,10 +68,10 @@ export default function SettingsPage(){
     error: locError,
   } = useMutation("PUT", `/settings/${id}/location_sharing`, ["settings"])
 
-  const toggleLoc = () => {
-    const newLoc = !loc
-    setLoc(newLoc);
-    locSharing({ location_sharing: newLoc})
+  const toggleLoc = (event) => {
+    const isChecked = event.target.checked
+    setLoc(isChecked);
+    locSharing({ location_sharing: isChecked})
   }
   const locStatus = loc ? "Yes" : "Do not share";
 
@@ -79,10 +82,10 @@ export default function SettingsPage(){
     error: notifError,
   } = useMutation("PUT", `/settings/${id}/notifications`, ["settings"])
 
-  const toggleNotif = () => {
-    const newNotif = !notif
-    setNotif(newNotif);
-    notifications({ notifications: newNotif })
+  const toggleNotif = (event) => {
+    const isChecked = event.target.checked
+    setNotif(isChecked);
+    notifications({ notifications: isChecked })
   }
   const notifStatus = notif ? "On" : "Off";
 
@@ -93,12 +96,14 @@ export default function SettingsPage(){
     error: themeError,
   } = useMutation("PUT", `/settings/${id}/theme`, ["settings"])
   
-  const toggleThemeSQL = () => {
-    const newDarkLight = darkLight==="L" ? "D" : "L"
-    setDarkLight(newDarkLight);
-    themeMode({ theme: newDarkLight })
+  const changeTheme = (event) => {
+    const isChecked = event.target.checked
+    const newTheme = isChecked ? "D" : "L"
+
+    toggleTheme(newTheme);
+    themeMode({ theme: newTheme })
   }
-  const themeStatus = darkLight==="L" ? "Light Mode" : "Dark Mode"
+  const themeStatus = theme==="L" ? "Light Mode" : "Dark Mode"
 
   // loading and error handlers for all the mutation/query hooks
   const loading = loadingSettings || updatingVis || updatingLoc || updatingNotif || updatingTheme;
@@ -108,47 +113,75 @@ export default function SettingsPage(){
   if (error) return <p>Sorry! {error}</p>
 
   return(
-    <div className={theme}>
-      <div>
+    <div className="settings-page">
+      <div className="settings-section">
         <h3>Account Visibility</h3>
         <p>{visStatus}</p>
-        <button onClick={() => {toggleVis()}}>Button</button>
+        <label className="section-edit switch">
+          <input
+            type="checkbox"
+            checked={vis}
+            onChange={(event) => {toggleVis(event)}}
+          />
+          <span className="slider round"></span>
+        </label>
       </div>
-      <div>
+      <div className="settings-section">
         <h3>Can we use your location?</h3>
         <p>{locStatus}</p>
-        <button onClick={() => {toggleLoc()}}>Button</button>
+        <label className="section-edit switch">
+          <input
+            type="checkbox"
+            checked={loc}
+            onChange={(event) => {toggleLoc(event)}}
+          />
+          <span className="slider round"></span>
+        </label>
       </div>
-      <div>
+      <div className="settings-section">
         <h3>Notifications</h3>
         <p>{notifStatus}</p>
-        <button onClick={() => {toggleNotif()}}>Button</button>
+        <label className="section-edit switch">
+          <input
+            type="checkbox"
+            checked={notif}
+            onChange={(event) => {toggleNotif(event)}}
+          />
+          <span className="slider round"></span>
+        </label>
       </div>
-      <div>
+      <div className="settings-section">
         <h3>Theme</h3>
         <p>{themeStatus}</p>
-        <button
-          id="toggle"
-          className="dark_mode"
-          aria-label="Toggle dark mode"
-          onClick={()=> {toggleThemeCSS(); toggleThemeSQL();}}
-        >
-          {theme === "light" ? "moon" : "sun"}
-        </button>
+        <label className="section-edit switch">
+        <input
+            id="toggle"
+            type="checkbox"
+            checked={isDark}
+            onChange={(event) => {changeTheme(event)}}
+        />
+          <span className="slider round"></span>
+        </label>
       </div>
-      <div>
-        <button onClick={() => {navigate("/home")}}>Home</button>
+      <div className="settings-bottom-buttons">
+        <div className="home-button" onClick={() => navigate("/home")}>
+            <img src="/images/HomeIcon.png" alt="Home" />
+          </div>
       </div>
     </div>
   )
 }
 
-export function DarkMode() {
+export function useDarkMode() {
   const [isDark, setIsDark] = useState(false)
   const theme = isDark ? "dark" : "light";
-  const toggleThemeCSS = () => setIsDark(!isDark)
+  const toggleThemeCSS = (event) => {
+    const isChecked = event.target.checked
+    setIsDark(isChecked)
+  }
+  console.log(theme);
+  
 
-  const value = {isDark, theme, toggleThemeCSS}
-  return value
+  return { isDark, theme, toggleThemeCSS }
 }
 // NEED MORE SETTINGS PROBABLY

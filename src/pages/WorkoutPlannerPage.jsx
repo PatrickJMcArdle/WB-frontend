@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import WorkoutForm from "../components/WorkoutForm";
+import { useAuth } from "../auth/AuthContext";
 import {
   loadPlans,
   savePlans,
@@ -9,19 +10,23 @@ import {
   setCompleted,
 } from "../services/workoutPlanService";
 import {
-  WORKOUT_FOCUS,
+  FOCUS_OPTIONS,
   calcWorkoutXP,
   accumulateDeltas,
 } from "../services/workoutService";
 import { loadBuddy, saveBuddy, awardXP } from "../services/buddyService";
+import { completeWorkout as apiCompleteWorkout } from "../services/achievementsService";
 
-const FOCUS_OPTIONS = Object.keys(WORKOUT_FOCUS);
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
 export default function WorkoutPlannerPage() {
   const [plans, setPlans] = useState(() => loadPlans());
   const [range, setRange] = useState({ from: todayStr(), to: todayStr() });
   const [editing, setEditing] = useState(null);
+  const [unlocked, setUnlocked] = useState([]);
+
+  const { user, token } = useAuth() || {};
+  const userId = user?.id;
 
   useEffect(() => savePlans(plans), [plans]);
 
@@ -41,32 +46,33 @@ export default function WorkoutPlannerPage() {
   }, [plans, range]);
 
   function handleSave(payload) {
-    // ensure reps present
-    const withDefaults = {
+    const focuses = Array.isArray(payload.focuses) ? payload.focuses : [];
+    upsertPlan({
       ...payload,
-      reps: payload.reps ?? 10,
+      focuses,
       is_completed: payload.is_completed ?? false,
-    };
-    upsertPlan(withDefaults);
+    });
     setPlans(loadPlans());
     setEditing(null);
   }
 
-  function complete(p) {
+  async function complete(p) {
+    // 1) mark complete locally
     const updated = setCompleted(p.id, {
       minutes: p.minutes,
       reps: p.reps,
+      sets: p.sets,
     });
     if (!updated) return;
 
-    // Buddy updates
+    // 2) update buddy
     const buddy = loadBuddy();
     const xp = calcWorkoutXP({
       minutes: updated.minutes,
       reps: updated.reps,
+      sets: updated.sets,
     });
-    const deltas = accumulateDeltas([updated.focus]);
-
+    const deltas = accumulateDeltas(updated.focuses || []);
     let next = awardXP(buddy, xp);
     next = {
       ...next,
@@ -78,6 +84,19 @@ export default function WorkoutPlannerPage() {
       },
     };
     saveBuddy(next);
+
+    // 3) notify backend (achievements + streaks)
+    if (userId && token) {
+      try {
+        const { newAchievements } = await apiCompleteWorkout(userId, token);
+        if (Array.isArray(newAchievements) && newAchievements.length) {
+          setUnlocked(newAchievements);
+          setTimeout(() => setUnlocked([]), 5000);
+        }
+      } catch (err) {
+        console.error("Failed to record workout for achievements:", err);
+      }
+    }
 
     setPlans(loadPlans());
   }
@@ -147,10 +166,11 @@ export default function WorkoutPlannerPage() {
           editing ?? {
             id: null,
             title: "",
-            focus: "upper",
+            focuses: [],
             date: todayStr(),
             minutes: 30,
-            reps: 10, // ✅ default reps
+            reps: 15,
+            sets: 3,
             notes: "",
           }
         }
@@ -185,11 +205,13 @@ export default function WorkoutPlannerPage() {
               <strong>{p.title}</strong>
               <small>{new Date(p.date).toLocaleDateString()}</small>
             </div>
+
             <div 
             className="workout-item-info"
             style={{ fontSize: 14, marginTop: 4 }}
             >
               Focus: {p.focus} • {p.minutes} min • {p.reps} reps
+
               {p.is_completed && (
                 <span 
                 style={{ marginLeft: 8, color: "green" }}

@@ -2,6 +2,7 @@ import { useNavigate, useParams } from "react-router";
 import useQuery from "../api/useQuery";
 import { useAuth } from "../auth/AuthContext";
 import "../index.css"
+import useMutation from "../api/useMutation";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -13,22 +14,52 @@ export default function ProfilePage() {
     error,
   } = useQuery(`/users/${id}`, ["users"])
 
-  if (loading || !user) return <p>Loading...</p>
-  if (error) return <p>Sorry! {error}</p>
+  //update account info (username, name, gender, birthday)
+  const {
+    mutate: accountInfo,
+    loading: updatingAccount,
+    error: accError
+  } = useMutation("PUT", `/users/${id}`, ["users"])
+
+  // update fitness goal
+  const {
+    mutate: fitGoal,
+    loading: updatingGoal,
+    error: goalError
+  } = useMutation("PUT", `/users/${id}/fitness-goal`, ["goals"])
 
   //gender is stored as num value, this converts it
   let gender = "N/A"
-  if (user.gender === 0) {
+  if (user?.gender === 0) {
     gender = "Male"
-  } else if (user.gender === 1) {
+  } else if (user?.gender === 1) {
     gender = "Female"
-  } else if (user.gender === 2) {
+  } else if (user?.gender === 2) {
     gender = "Other"
   }
 
   //convert birthday into mm/dd/yyyy format
-  const birthday = new Date(user.birthday)
+  const birthday = new Date(user?.birthday)
   const newBirthday = birthday.toLocaleString().split(",")[0]
+
+  let accType = ""
+  if (user?.account_type === 0) {
+    accType = "Trainee"
+  } else if (user?.account_type === 1) {
+    accType = "Trainer"
+  } else if (user?.account_type === 2) {
+    accType = "Admin"
+  }
+
+  if (loading || !user) return <p>Loading...</p>
+  if (error) return <p>Sorry! {error}</p>
+
+  if (updatingAccount || !id) return <p>Loading...</p>
+  if (accError) return <p>Sorry! {accError}</p>
+
+  if (updatingGoal || !id) return <p>Loading...</p>
+  if (goalError) return <p>Sorry! {goalError}</p>
+
 
   return (
     <>
@@ -37,7 +68,7 @@ export default function ProfilePage() {
           <h3>Account Info</h3>
           <button className="section-edit">Edit</button>
           <ul>
-            <li>Account: {user.account_type}</li>
+            <li>Account: {accType}</li>
             <li>Username: {user.username}</li>
             <li>Name: {user.first_name}</li>
             <li>Gender: {gender} | Birthday: {newBirthday}</li>
@@ -62,7 +93,5 @@ export default function ProfilePage() {
       </div>
     </>
   )
-  // The settings button sends you to the settings page
-  // The edit buttons will bring up a form where you can submit changes to username, name, gender, birthday for account info and fitness goal for fitness info
   // https://www.w3schools.com/howto/howto_js_popup_form.asp
 }

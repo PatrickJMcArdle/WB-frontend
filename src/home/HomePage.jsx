@@ -8,8 +8,6 @@ export default function HomePage() {
   const navigate = useNavigate();
 
   const [showMap, setShowMap] = useState(false);
-  console.log("Show map:", showMap);
-
   const [goals, setGoals] = useState([
     { text: "RDL", completed: false },
     { text: "Bulgarian Split Squats", completed: false },
@@ -70,7 +68,7 @@ export default function HomePage() {
         ))}
       </ul>
 
-      {/* CHANGED: navigate to planner */}
+      {/* UPDATED: Saved Workouts goes to planner */}
       <button className="saved-btn" onClick={() => navigate("/workouts")}>
         Saved Workouts
       </button>

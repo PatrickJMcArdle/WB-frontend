@@ -1,110 +1,196 @@
-import {
-  HAIR_STYLES,
-  HAIR_COLORS,
-  TOPS,
-  BOTTOMS,
-} from "../../services/buddyService";
+export default function AvatarPreview({ appearance, outfit, cosmetics }) {
+  const { arms = 0, chest = 0, legs = 0, torsoTone = 0 } = appearance || {};
+  const armScale = 1 + arms * 0.06;
+  const chestScale = 1 + chest * 0.06;
+  const legScale = 1 + legs * 0.06;
+  const tone = Math.min(1, 0.6 + torsoTone * 0.07);
 
-function byId(list, id, fallback) {
-  return list.find((x) => x.id === id) || fallback;
-}
-function byColorId(list, id, fallback) {
-  return list.find((x) => x.id === id) || fallback;
-}
+  // very simple color map
+  const hairColorMap = {
+    brown: "#6b4423",
+    black: "#2b2b2b",
+    blonde: "#d9b76e",
+    red: "#a33b1f",
+    blue: "#3b82f6",
+  };
+  const hairColor =
+    hairColorMap[cosmetics?.hairColorId ?? "brown"] || "#6b4423";
 
-export default function AvatarPreview({
-  appearance,
-  outfit, // legacy (not required by SVG)
-  cosmetics = { hairStyleId: 1, hairColorId: "brown", topId: 1, bottomId: 1 },
-}) {
-  const hair = byId(HAIR_STYLES, cosmetics.hairStyleId, HAIR_STYLES[0]);
-  const hairColor = byColorId(
-    HAIR_COLORS,
-    cosmetics.hairColorId,
-    HAIR_COLORS[0]
-  );
-  const top = byId(TOPS, cosmetics.topId, TOPS[0]);
-  const bottom = byId(BOTTOMS, cosmetics.bottomId, BOTTOMS[0]);
-
-  const colors = {
-    skin: "#f4c7a1",
-    hair:
-      hairColor.id === "black"
-        ? "#222"
-        : hairColor.id === "blonde"
-        ? "#f5d86b"
-        : hairColor.id === "red"
-        ? "#d35454"
-        : hairColor.id === "blue"
-        ? "#4a77ff"
-        : "#7b5230",
-    top:
-      top.id === 1
-        ? "#3b82f6"
-        : top.id === 2
-        ? "#475569"
-        : top.id === 3
-        ? "#8b5cf6"
-        : top.id === 4
-        ? "#22c55e"
-        : "#3b82f6",
-    bottoms:
-      bottom.id === 1
-        ? "#2db58a"
-        : bottom.id === 2
-        ? "#374151"
-        : bottom.id === 3
-        ? "#7e22ce"
-        : "#2db58a",
+  const topColorMap = {
+    tee: "#3b82f6",
+    hoodie: "#334155",
+    tank: "#ef4444",
+    comp: "#22c55e",
+  };
+  const bottomColorMap = {
+    shorts: "#222",
+    joggers: "#475569",
+    tights: "#6366f1",
   };
 
-  // hair geometry tweak by style (subtle)
-  const hairOffset = hair.id === 1 ? 0 : hair.id === 2 ? 4 : 8;
+  // pick by topId/bottomId (fallback by spriteKey name)
+  const topKey =
+    cosmetics?.topSpriteKey || spriteKeyFromTopId(cosmetics?.topId);
+  const bottomKey =
+    cosmetics?.bottomSpriteKey || spriteKeyFromBottomId(cosmetics?.bottomId);
 
   return (
-    <div
-      className="w-full grid place-items-center bg-gray-50 rounded"
-      style={{ aspectRatio: "1 / 1" }}
-    >
-      <svg width="220" height="220" viewBox="0 0 200 220">
-        {/* head */}
-        <circle cx="100" cy="60" r="30" fill={colors.skin} />
-        {/* hair */}
-        <path
-          d={`M70 ${60 - hairOffset} Q100 ${20 - hairOffset} 130 ${
-            60 - hairOffset
-          } L130 48 Q100 ${10 - hairOffset} 70 48 Z`}
-          fill={colors.hair}
-        />
+    <div className="w-full aspect-[1/1] grid place-items-center bg-gray-50 rounded">
+      <svg width="220" height="220" viewBox="0 0 220 220">
+        {/* bottom (pants/shorts) */}
+        <g
+          transform={`translate(110,150) scale(${legScale})`}
+          style={{ transition: "transform 160ms ease" }}
+        >
+          {/* legs (skin under) */}
+          <rect x="-35" y="0" width="20" height="50" rx="8" fill="#b09070" />
+          <rect x="15" y="0" width="20" height="50" rx="8" fill="#b09070" />
+          {/* clothing overlay */}
+          {bottomKey && (
+            <>
+              <rect
+                x="-40"
+                y="-6"
+                width="80"
+                height="22"
+                rx="8"
+                fill={bottomColorMap[bottomKey] || "#222"}
+              />
+              <rect
+                x="-35"
+                y="12"
+                width="20"
+                height="38"
+                rx="6"
+                fill={bottomColorMap[bottomKey] || "#222"}
+              />
+              <rect
+                x="15"
+                y="12"
+                width="20"
+                height="38"
+                rx="6"
+                fill={bottomColorMap[bottomKey] || "#222"}
+              />
+            </>
+          )}
+        </g>
 
-        {/* torso (top) */}
-        <rect x="70" y="92" width="60" height="60" rx="10" fill={colors.top} />
-        {/* arms (match top color) */}
-        <rect x="54" y="96" width="16" height="14" rx="7" fill={colors.top} />
-        <rect x="130" y="96" width="16" height="14" rx="7" fill={colors.top} />
+        {/* torso */}
+        <g
+          transform={`translate(110,110) scale(${chestScale})`}
+          style={{ transition: "transform 160ms ease" }}
+        >
+          {/* skin */}
+          <rect
+            x="-30"
+            y="-35"
+            width="60"
+            height="70"
+            rx="18"
+            fill="#b09070"
+            fillOpacity={tone}
+          />
+          {/* top clothing */}
+          {topKey === "hoodie" && (
+            <path
+              d="M-40 -20 h80 v65 h-80 z"
+              fill={topColorMap[topKey]}
+              opacity="0.95"
+            />
+          )}
+          {topKey === "tank" && (
+            <path
+              d="M-35 -10 h70 v40 h-70 z"
+              fill={topColorMap[topKey]}
+              opacity="0.95"
+            />
+          )}
+          {topKey === "tee" && (
+            <path
+              d="M-35 -5  h70 v35 h-70 z"
+              fill={topColorMap[topKey]}
+              opacity="0.9"
+            />
+          )}
+          {topKey === "comp" && (
+            <path
+              d="M-35 -12 h70 v42 h-70 z"
+              fill={topColorMap[topKey]}
+              opacity="0.95"
+            />
+          )}
+        </g>
 
-        {/* legs (bottoms) */}
-        <rect
-          x="72"
-          y="152"
-          width="24"
-          height="50"
-          rx="8"
-          fill={colors.bottoms}
-        />
-        <rect
-          x="104"
-          y="152"
-          width="24"
-          height="50"
-          rx="8"
-          fill={colors.bottoms}
-        />
+        {/* arms */}
+        <g
+          transform={`translate(110,100) scale(${armScale})`}
+          style={{ transition: "transform 160ms ease" }}
+        >
+          <rect x="-70" y="-10" width="30" height="20" rx="10" fill="#b09070" />
+          <rect x="40" y="-10" width="30" height="20" rx="10" fill="#b09070" />
+        </g>
 
-        {/* shoes */}
-        <rect x="70" y="202" width="28" height="8" rx="3" fill="#444" />
-        <rect x="102" y="202" width="28" height="8" rx="3" fill="#444" />
+        {/* head + hair */}
+        <g>
+          <circle cx="110" cy="60" r="24" fill="#b09070" />
+          {/* hair styles */}
+          {renderHair(cosmetics?.hairStyleId, hairColor)}
+        </g>
+
+        {/* legacy outfit overlay kept for backward compatibility */}
+        {outfit?.spriteKey === "hoodie" && (
+          <path d="M70 75 h80 v65 h-80 z" fill="#334155" opacity="0.9" />
+        )}
+        {outfit?.spriteKey === "tank" && (
+          <path d="M75 80 h70 v40 h-70 z" fill="#ef4444" opacity="0.9" />
+        )}
+        {outfit?.spriteKey === "tee" && (
+          <path d="M75 85 h70 v35 h-70 z" fill="#3b82f6" opacity="0.85" />
+        )}
       </svg>
     </div>
   );
+}
+
+function renderHair(hairStyleId = 1, color = "#6b4423") {
+  // simple silhouettes
+  if (hairStyleId === 3) {
+    // Long
+    return (
+      <>
+        <path d="M86,50 q24,-18 48,0 v26 q-24,12 -48,0 z" fill={color} />
+        <circle cx="110" cy="60" r="24" fill="transparent" />
+      </>
+    );
+  }
+  if (hairStyleId === 2) {
+    // Medium
+    return <path d="M88,50 q22,-16 44,0 v16 q-22,10 -44,0 z" fill={color} />;
+  }
+  // Short default
+  return <path d="M90,48 q20,-14 40,0 v10 q-20,8 -40,0 z" fill={color} />;
+}
+
+function spriteKeyFromTopId(id) {
+  switch (id) {
+    case 2:
+      return "hoodie";
+    case 3:
+      return "tank";
+    case 4:
+      return "comp";
+    default:
+      return "tee";
+  }
+}
+function spriteKeyFromBottomId(id) {
+  switch (id) {
+    case 2:
+      return "joggers";
+    case 3:
+      return "tights";
+    default:
+      return "shorts";
+  }
 }

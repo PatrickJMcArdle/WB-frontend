@@ -4,10 +4,11 @@ export default function WorkoutForm({
   initial = {
     id: null,
     title: "",
-    focus: "upper",
+    focuses: [], // <- multi
     date: new Date().toISOString().slice(0, 10),
     minutes: 30,
-    reps: 10, // ✅ default reps
+    reps: 15,
+    sets: 3,
     notes: "",
   },
   focusOptions = [],
@@ -23,16 +24,29 @@ export default function WorkoutForm({
     setForm((f) => ({ ...f, [key]: val }));
   }
 
+  function toggleFocus(key) {
+    setForm((f) => {
+      const cur = new Set(f.focuses || []);
+      if (cur.has(key)) cur.delete(key);
+      else cur.add(key);
+      return { ...f, focuses: Array.from(cur) };
+    });
+  }
+
   function validate() {
     const e = {};
     if (!form.title.trim()) e.title = "Title is required";
-    if (!focusOptions.includes(form.focus)) e.focus = "Pick a valid focus";
+    if (!Array.isArray(form.focuses) || form.focuses.length === 0)
+      e.focuses = "Pick at least one focus";
     const mins = Number(form.minutes);
     if (!Number.isFinite(mins) || mins < 5 || mins > 180)
       e.minutes = "Minutes must be 5–180";
     const reps = Number(form.reps);
-    if (!Number.isFinite(reps) || reps < 1 || reps > 300)
-      e.reps = "Reps must be 1–300";
+    if (!Number.isFinite(reps) || reps < 1 || reps > 50)
+      e.reps = "Reps must be 1–50";
+    const sets = Number(form.sets);
+    if (!Number.isFinite(sets) || sets < 1 || sets > 10)
+      e.sets = "Sets must be 1–10";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -45,6 +59,8 @@ export default function WorkoutForm({
       title: form.title.trim(),
       minutes: Math.round(Number(form.minutes)),
       reps: Math.round(Number(form.reps)),
+      sets: Math.round(Number(form.sets)),
+      focuses: Array.from(new Set(form.focuses || [])),
     };
     onSave?.(payload);
   }
@@ -76,6 +92,7 @@ return (
             <option key={f} value={f}>{f}</option>
           ))}
         </select>
+
         <input
           type="date"
           value={form.date}

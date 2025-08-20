@@ -2,7 +2,7 @@ import { accumulateDeltas, calcWorkoutXP } from "./workoutService";
 
 const STORAGE_KEY = "myBuddy";
 
-// ===== Cosmetic catalogs (new) =====
+// ===== Cosmetic catalogs =====
 export const HAIR_STYLES = [
   { id: 1, name: "Short", minLevel: 1, spriteKey: "hair_short" },
   { id: 2, name: "Medium", minLevel: 2, spriteKey: "hair_medium" },
@@ -14,30 +14,29 @@ export const HAIR_COLORS = [
   { id: "black", name: "Black", minLevel: 1 },
   { id: "blonde", name: "Blonde", minLevel: 2 },
   { id: "red", name: "Red", minLevel: 3 },
-  { id: "blue", name: "Blue", minLevel: 5 },
+  { id: "blue", name: "Blue", minLevel: 15 }, // shift fun colors to 15+
 ];
 
 export const TOPS = [
-  { id: 1, name: "Starter Tee", minLevel: 1, spriteKey: "tee" },
-  { id: 2, name: "Gym Hoodie", minLevel: 3, spriteKey: "hoodie" },
-  { id: 3, name: "Pro Tank", minLevel: 5, spriteKey: "tank" },
-  { id: 4, name: "Compression Top", minLevel: 7, spriteKey: "comp" },
+  { id: 1, name: "Starter Tee", minLevel: 1, spriteKey: "tee" }, // legacy feel
+  { id: 2, name: "Gym Hoodie", minLevel: 5, spriteKey: "hoodie" }, // before 10
+  { id: 3, name: "Pro Tank", minLevel: 9, spriteKey: "tank" }, // before 10
+  { id: 4, name: "Compression Top", minLevel: 15, spriteKey: "comp" }, // 15+
 ];
 
 export const BOTTOMS = [
-  { id: 1, name: "Shorts", minLevel: 1, spriteKey: "shorts" },
-  { id: 2, name: "Joggers", minLevel: 3, spriteKey: "joggers" },
-  { id: 3, name: "Pro Tights", minLevel: 6, spriteKey: "tights" },
+  { id: 1, name: "Shorts", minLevel: 1, spriteKey: "shorts" }, // legacy feel
+  { id: 2, name: "Joggers", minLevel: 7, spriteKey: "joggers" }, // before 10
+  { id: 3, name: "Pro Tights", minLevel: 15, spriteKey: "tights" }, // 15+
 ];
 
-// ===== Legacy outfits (kept for OutfitGallery) =====
+// ===== Legacy outfits (kept for existing gallery) =====
 export const OUTFITS = [
   { id: 1, name: "Starter Tee", minLevel: 1, spriteKey: "tee" },
   { id: 2, name: "Gym Hoodie", minLevel: 3, spriteKey: "hoodie" },
   { id: 3, name: "Pro Tank", minLevel: 5, spriteKey: "tank" },
 ];
 
-// ===== Default model (extended) =====
 export const DEFAULT = {
   userId: 1,
   level: 1,
@@ -46,11 +45,9 @@ export const DEFAULT = {
   stats: { strength: 0, dexterity: 0, stamina: 0, core: 0 },
   appearance: { arms: 0, chest: 0, legs: 0, torsoTone: 0 },
 
-  // legacy outfits for your existing gallery
   equippedOutfitId: 1,
   unlockedOutfitIds: [1],
 
-  // NEW: cosmetics & unlocks
   cosmetics: {
     hairStyleId: 1,
     hairColorId: "brown",
@@ -103,6 +100,7 @@ export function saveBuddy(b) {
 }
 
 // ---------- leveling / xp ----------
+// Keep L1 target at 100 XP (same formula you had).
 export function nextLevelXP(level) {
   return Math.round(100 * Math.pow(level, 1.5));
 }
@@ -129,7 +127,7 @@ export function awardXP(buddy, amount) {
     b.level += 1;
     b.statPoints += 5;
 
-    // legacy outfits (kept)
+    // Legacy outfits (before level 10)
     const outfitUnlocks = OUTFITS.filter((o) => o.minLevel <= b.level).map(
       (o) => o.id
     );
@@ -138,7 +136,9 @@ export function awardXP(buddy, amount) {
     );
     if (!b.equippedOutfitId) b.equippedOutfitId = 1;
 
-    // NEW: cosmetics unlocks
+    // Cosmetics:
+    // - We still let some basic ones unlock early (ids above).
+    // - Additional styles/colors/tops/bottoms have minLevel >= 15.
     b.unlocked = {
       hairStyleIds: Array.from(
         new Set([...(b.unlocked?.hairStyleIds || []), ...unlockedHair(b.level)])
@@ -158,14 +158,18 @@ export function awardXP(buddy, amount) {
     };
 
     // ensure equipped cosmetics are valid (fallbacks)
-    if (!b.unlocked.hairStyleIds.includes(b.cosmetics?.hairStyleId))
+    if (!b.unlocked.hairStyleIds.includes(b.cosmetics?.hairStyleId)) {
       b.cosmetics = { ...(b.cosmetics || {}), hairStyleId: 1 };
-    if (!b.unlocked.hairColorIds.includes(b.cosmetics?.hairColorId))
+    }
+    if (!b.unlocked.hairColorIds.includes(b.cosmetics?.hairColorId)) {
       b.cosmetics = { ...(b.cosmetics || {}), hairColorId: "brown" };
-    if (!b.unlocked.topIds.includes(b.cosmetics?.topId))
+    }
+    if (!b.unlocked.topIds.includes(b.cosmetics?.topId)) {
       b.cosmetics = { ...(b.cosmetics || {}), topId: 1 };
-    if (!b.unlocked.bottomIds.includes(b.cosmetics?.bottomId))
+    }
+    if (!b.unlocked.bottomIds.includes(b.cosmetics?.bottomId)) {
       b.cosmetics = { ...(b.cosmetics || {}), bottomId: 1 };
+    }
 
     next = nextLevelXP(b.level);
   }
@@ -173,30 +177,42 @@ export function awardXP(buddy, amount) {
 }
 
 // ---------- appearance mapping ----------
-function toAppearance(stats) {
+// Stop *size* growth after level 10 (arms/chest/legs).
+// Allow torsoTone to keep improving slightly with training.
+function toAppearance(stats, level) {
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
   const s = stats || DEFAULT.stats;
+
+  // Raw sizes from stats
+  let arms = Math.floor((s.strength || 0) / 2);
+  let chest = Math.floor(((s.strength || 0) + (s.core || 0)) / 3);
+  let legs = Math.floor((s.stamina || 0) / 2);
+  let torsoTone = Math.floor(((s.dexterity || 0) + (s.core || 0)) / 3);
+
+  // Hard-cap visual size growth after level 10
+  const sizeCap = 5; // maximum visual band
+  if (level > 10) {
+    arms = Math.min(arms, sizeCap);
+    chest = Math.min(chest, sizeCap);
+    legs = Math.min(legs, sizeCap);
+    // tone can continue but still clamp to 5 to avoid extremes
+    torsoTone = Math.min(torsoTone, sizeCap);
+  }
+
   return {
-    arms: clamp(Math.floor((s.strength || 0) / 2), 0, 5),
-    chest: clamp(Math.floor(((s.strength || 0) + (s.core || 0)) / 3), 0, 5),
-    legs: clamp(Math.floor((s.stamina || 0) / 2), 0, 5),
-    torsoTone: clamp(
-      Math.floor(((s.dexterity || 0) + (s.core || 0)) / 3),
-      0,
-      5
-    ),
+    arms: clamp(arms, 0, sizeCap),
+    chest: clamp(chest, 0, sizeCap),
+    legs: clamp(legs, 0, sizeCap),
+    torsoTone: clamp(torsoTone, 0, sizeCap),
   };
 }
 
-// ---------- apply a workout (updated to accept reps) ----------
+// ---------- apply a workout (reps/sets now) ----------
 export function applyWorkout(
   buddy,
-  { focuses = [], reps = 10, minutes = 30, notes = "" } // ✅ reps instead of intensity
+  { focuses = [], minutes = 30, reps = 10, sets = 3, notes = "" }
 ) {
-  // use reps-based XP
-  const xpGain = calcWorkoutXP({ reps, minutes });
-  // ...rest of the function unchanged...
-
+  const xpGain = calcWorkoutXP({ minutes, reps, sets });
   const deltas = accumulateDeltas(focuses);
 
   // 1) Give XP (handles level-ups, adds statPoints)
@@ -224,6 +240,7 @@ export function applyWorkout(
     if (share > 0) add(newStats, key, share);
   });
 
+  // leftover rounding → highest-weight stat
   const spent =
     newStats.strength +
     newStats.dexterity +
@@ -233,7 +250,6 @@ export function applyWorkout(
       updated.stats.dexterity +
       updated.stats.stamina +
       updated.stats.core);
-
   let leftover = Math.max(0, toSpend - spent);
   if (leftover > 0) {
     const best =
@@ -244,7 +260,7 @@ export function applyWorkout(
   updated = { ...updated, stats: newStats, statPoints: 0 };
 
   // 3) Recompute appearance + gentle part nudges from workout focus
-  const baseApp = toAppearance(updated.stats);
+  const baseApp = toAppearance(updated.stats, updated.level);
   const nudged = { ...baseApp };
   const partNudges = deltas.parts || {};
   Object.entries(partNudges).forEach(([k, v]) => {
@@ -257,8 +273,9 @@ export function applyWorkout(
     lastWorkout: {
       when: Date.now(),
       focuses,
-      reps,
       minutes,
+      reps,
+      sets,
       notes,
       xpGain,
     },
