@@ -49,99 +49,69 @@ export default function WorkoutForm({
     onSave?.(payload);
   }
 
-  return (
-    <form
-      onSubmit={submit}
-      style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12 }}
-    >
-      <h2 style={{ marginTop: 0 }}>
-        {form.id ? "Edit Workout" : "Add Workout"}
-      </h2>
+return (
+  <form
+    onSubmit={submit}
+    className="workout-form"
+  >
+    <h2 className="workout-form-title">
+      {form.id ? "Edit Workout" : "Add Workout"}
+    </h2>
 
-      <div
-        style={{
-          display: "grid",
-          gap: 8,
-          gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr",
-        }}
-      >
-        <div>
-          <input
-            placeholder="Title (e.g., Push Day)"
-            value={form.title}
-            onChange={(e) => update("title", e.target.value)}
-            style={{ width: "100%" }}
-          />
-          {errors.title && (
-            <div style={{ color: "crimson", fontSize: 12 }}>{errors.title}</div>
-          )}
-        </div>
+    <div className="workout-form-inner">
+      <div className="workout-form-row">
+        <input
+          placeholder="Title (e.g., Push Day)"
+          value={form.title}
+          onChange={(e) => update("title", e.target.value)}
+        />
+      </div>
 
-        <div>
-          <select
-            value={form.focus}
-            onChange={(e) => update("focus", e.target.value)}
-            style={{ width: "100%" }}
-          >
-            {focusOptions.map((f) => (
-              <option key={f} value={f}>
-                {f}
-              </option>
-            ))}
-          </select>
-          {errors.focus && (
-            <div style={{ color: "crimson", fontSize: 12 }}>{errors.focus}</div>
-          )}
-        </div>
-
+      <div className="workout-form-row">
+        <select
+          value={form.focus}
+          onChange={(e) => update("focus", e.target.value)}
+        >
+          {focusOptions.map((f) => (
+            <option key={f} value={f}>{f}</option>
+          ))}
+        </select>
         <input
           type="date"
           value={form.date}
           onChange={(e) => update("date", e.target.value)}
         />
-
-        <div>
-          <input
-            type="number"
-            min={5}
-            max={180}
-            value={form.minutes}
-            onChange={(e) => update("minutes", e.target.value)}
-            placeholder="Minutes"
-            style={{ width: "100%" }}
-          />
-          {errors.minutes && (
-            <div style={{ color: "crimson", fontSize: 12 }}>
-              {errors.minutes}
-            </div>
-          )}
-        </div>
-
-        <div>
-          <input
-            type="number"
-            min={1}
-            max={300}
-            value={form.reps}
-            onChange={(e) => update("reps", e.target.value)}
-            placeholder="Reps (total/avg)"
-            style={{ width: "100%" }}
-          />
-          {errors.reps && (
-            <div style={{ color: "crimson", fontSize: 12 }}>{errors.reps}</div>
-          )}
-        </div>
       </div>
 
-      <textarea
-        rows={3}
-        placeholder="Notes (optional)"
-        value={form.notes}
-        onChange={(e) => update("notes", e.target.value)}
-        style={{ width: "100%", marginTop: 8 }}
-      />
+      <div className="workout-form-row">
+        <input
+          type="number"
+          min={5}
+          max={180}
+          value={form.minutes}
+          onChange={(e) => update("minutes", e.target.value)}
+          placeholder="Minutes"
+        />
+        <input
+          type="number"
+          min={1}
+          max={300}
+          value={form.reps}
+          onChange={(e) => update("reps", e.target.value)}
+          placeholder="Reps"
+        />
+      </div>
 
-      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+      <div className="workout-form-row">
+        <textarea
+          rows={3}
+          placeholder="Notes (optional)"
+          value={form.notes}
+          onChange={(e) => update("notes", e.target.value)}
+        />
+      </div>
+
+      <div className="workout-form-actions">
         <button type="submit">
           {form.id ? "Save Changes" : "Add Workout"}
         </button>
@@ -151,6 +121,7 @@ export default function WorkoutForm({
           </button>
         )}
       </div>
-    </form>
-  );
+    </div>
+  </form>
+);
 }
