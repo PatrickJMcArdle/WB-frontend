@@ -94,7 +94,7 @@ export default function AvatarPreview({ appearance, outfit, cosmetics }) {
           {/* top clothing */}
           {topKey === "hoodie" && (
             <path
-              d="M-40 -20 h80 v65 h-80 z"
+              d="M-40 -34 h80 v70 h-80 z"
               fill={topColorMap[topKey]}
               opacity="0.95"
             />
@@ -108,7 +108,7 @@ export default function AvatarPreview({ appearance, outfit, cosmetics }) {
           )}
           {topKey === "tee" && (
             <path
-              d="M-35 -5  h70 v35 h-70 z"
+              d="M-35 -34  h70 v69 h-70 z"
               fill={topColorMap[topKey]}
               opacity="0.9"
             />
@@ -140,13 +140,13 @@ export default function AvatarPreview({ appearance, outfit, cosmetics }) {
 
         {/* legacy outfit overlay kept for backward compatibility */}
         {outfit?.spriteKey === "hoodie" && (
-          <path d="M70 75 h80 v65 h-80 z" fill="#334155" opacity="0.9" />
+          <path d="M45 80 h130 v35 h-130 z" fill="#334155" opacity="0.95" />
         )}
         {outfit?.spriteKey === "tank" && (
           <path d="M75 80 h70 v40 h-70 z" fill="#ef4444" opacity="0.9" />
         )}
         {outfit?.spriteKey === "tee" && (
-          <path d="M75 85 h70 v35 h-70 z" fill="#3b82f6" opacity="0.85" />
+          <path d="M55 85 h110 v35 h-110 z" fill="#3b82f6" opacity="0.95" />
         )}
       </svg>
     </div>
@@ -159,17 +159,17 @@ function renderHair(hairStyleId = 1, color = "#6b4423") {
     // Long
     return (
       <>
-        <path d="M86,50 q24,-18 48,0 v26 q-24,12 -48,0 z" fill={color} />
+        <path d="M84,60 C90,20 130,20 136,60 v26 C122,30 98,30 84,86 z" fill={color} />
         <circle cx="110" cy="60" r="24" fill="transparent" />
       </>
     );
   }
   if (hairStyleId === 2) {
     // Medium
-    return <path d="M88,50 q22,-16 44,0 v16 q-22,10 -44,0 z" fill={color} />;
+    return <path d="M84,46 q26,-30 52,0 v16 q-26,-28 -52,0 z" fill={color} />;
   }
   // Short default
-  return <path d="M90,48 q20,-14 40,0 v10 q-20,8 -40,0 z" fill={color} />;
+  return <path d="M86,42 q20,-22 48,0 v12 q-20,-4 -48,0 z" fill={color} />;
 }
 
 function spriteKeyFromTopId(id) {
