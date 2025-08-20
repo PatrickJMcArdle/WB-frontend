@@ -1,48 +1,54 @@
-import { useEffect, useState } from "react";
+// import React, { useEffect, useRef, useState } from "react";
 
-export default function Map() {
-  const [gyms, setGyms] = useState([]);
-  const [status, setStatus] = useState("");      // show API status
+// const Map = () => {
+//   const mapRef = useRef(null);
+//   const [mapReady, setMapReady] = useState(false);
 
-  useEffect(() => {
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        const radius = 5000;
+//   useEffect(() => {
+//     const checkGoogle = setInterval(() => {
+//       console.log("Checking for google...", window.google);
+//       if (window.google && window.googleMapsReady) {
+//         setMapReady(true);
+//         clearInterval(checkGoogle);
+//       }
+//     }, 500);
 
-        const base = import.meta.env.VITE_API_URL || "";
-        const url = `${base}/map/gyms/${lat}/${lng}/${radius}?t=${Date.now()}`;
+//     return () => clearInterval(checkGoogle);
+//   }, []);
 
-        const res = await fetch(url, { cache: "no-store" });
-        const data = await res.json();
+//   useEffect(() => {
+//     if (mapReady) {
+//       const map = new window.google.maps.Map(mapRef.current, {
+//         center: { lat: 41.8781, lng: -87.6298 }, // Chicago
+//         zoom: 14,
+//       });
 
-        setStatus(data.status || "UNKNOWN");
-        setGyms(data?.results ?? []);
-      },
-      (err) => {
-        setStatus(`GEO_ERROR: ${err.message}`);
-      }
-    );
-  }, []);
+//       const service = new window.google.maps.places.PlacesService(map);
 
-  return (
-    <div>
-      <h3>Gyms Near You</h3>
-      <div style={{ marginBottom: 8 }}>Status: <b>{status}</b> — Results: <b>{gyms.length}</b></div>
-      {gyms.length > 0 ? (
-        <ul style={{ color: "white" }}>
-          {gyms.map((g) => (
-            <li key={g.place_id}>{g.name} — {g.vicinity}</li>
-          ))}
-        </ul>
-      ) : (
-        <div style={{ opacity: 0.8 }}>
-          {status === "OK"
-            ? "No gyms found in this radius. Try increasing it."
-            : "Fetching… or no results yet."}
-        </div>
-      )}
-    </div>
-  );
-}
+//       service.nearbySearch(
+//         {
+//           location: { lat: 41.8781, lng: -87.6298 },
+//           radius: 2000,
+//           type: "gym",
+//         },
+//         (results, status) => {
+//           if (status === window.google.maps.places.PlacesServiceStatus.OK) {
+//             results.forEach((place) => {
+//               new window.google.maps.Marker({
+//                 position: place.geometry.location,
+//                 map,
+//                 title: place.name,
+//               });
+//             });
+//           } else {
+//             console.error("PlacesService failed:", status);
+//           }
+//         }
+//       );
+//     }
+//   }, [mapReady]);
+
+//   return <div ref={mapRef} style={{ width: "100%", height: "500px" }} />;
+// };
+
+// export default Map;
