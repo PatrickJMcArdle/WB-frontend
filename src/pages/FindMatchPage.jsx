@@ -62,7 +62,7 @@ export default function FindMatchPage() {
     const params = new URLSearchParams();
     if (filters.goal) params.set("goal", String(filters.goal));
     if (filters.gender !== "")
-      params.set("preferred_trainer", String(filters.gender));
+      params.set("gender", String(filters.gender));
     return `/users/trainees/${currentUserId}?${params.toString()}`;
   }, [filters.goal, filters.gender, currentUserId]);
 
