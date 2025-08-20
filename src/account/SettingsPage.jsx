@@ -21,7 +21,7 @@ export default function SettingsPage(){
     loading: loadingSettings,
     error: settingsError,
   } = useQuery(`/settings/${id}`)
-
+  
   // set all the vairables to the specific users settings
   useEffect(() => {
     if (userSettings?.public_profile !== undefined) {

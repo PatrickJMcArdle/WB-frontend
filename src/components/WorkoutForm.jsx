@@ -65,140 +65,70 @@ export default function WorkoutForm({
     onSave?.(payload);
   }
 
-  return (
-    <form
-      onSubmit={submit}
-      style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12 }}
-    >
-      <h2 style={{ marginTop: 0 }}>
-        {form.id ? "Edit Workout" : "Add Workout"}
-      </h2>
+return (
+  <form
+    onSubmit={submit}
+    className="workout-form"
+  >
+    <h2 className="workout-form-title">
+      {form.id ? "Edit Workout" : "Add Workout"}
+    </h2>
 
-      <div
-        style={{
-          display: "grid",
-          gap: 8,
-          gridTemplateColumns: "2fr 1fr 1fr 1fr",
-        }}
-      >
-        <div>
-          <input
-            placeholder="Title (e.g., Push Day)"
-            value={form.title}
-            onChange={(e) => update("title", e.target.value)}
-            style={{ width: "100%" }}
-          />
-          {errors.title && (
-            <div style={{ color: "crimson", fontSize: 12 }}>{errors.title}</div>
-          )}
-        </div>
+    <div className="workout-form-inner">
+      <div className="workout-form-row">
+        <input
+          placeholder="Title (e.g., Push Day)"
+          value={form.title}
+          onChange={(e) => update("title", e.target.value)}
+        />
+      </div>
+
+      <div className="workout-form-row">
+        <select
+          value={form.focus}
+          onChange={(e) => update("focus", e.target.value)}
+        >
+          {focusOptions.map((f) => (
+            <option key={f} value={f}>{f}</option>
+          ))}
+        </select>
 
         <input
           type="date"
           value={form.date}
           onChange={(e) => update("date", e.target.value)}
         />
-
-        <div>
-          <input
-            type="number"
-            min={5}
-            max={180}
-            value={form.minutes}
-            onChange={(e) => update("minutes", e.target.value)}
-            placeholder="Minutes"
-            style={{ width: "100%" }}
-          />
-          {errors.minutes && (
-            <div style={{ color: "crimson", fontSize: 12 }}>
-              {errors.minutes}
-            </div>
-          )}
-        </div>
-
-        <div />
       </div>
 
-      {/* Multi-focus checkbox grid */}
-      <div style={{ marginTop: 8 }}>
-        <div style={{ fontWeight: 600, marginBottom: 6 }}>Focus Areas</div>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-            gap: 6,
-          }}
-        >
-          {focusOptions.map((f) => {
-            const checked = form.focuses?.includes(f);
-            return (
-              <label
-                key={f}
-                style={{ display: "flex", gap: 6, alignItems: "center" }}
-              >
-                <input
-                  type="checkbox"
-                  checked={!!checked}
-                  onChange={() => toggleFocus(f)}
-                />
-                <span style={{ textTransform: "capitalize" }}>{f}</span>
-              </label>
-            );
-          })}
-        </div>
-        {errors.focuses && (
-          <div style={{ color: "crimson", fontSize: 12 }}>{errors.focuses}</div>
-        )}
+      <div className="workout-form-row">
+        <input
+          type="number"
+          min={5}
+          max={180}
+          value={form.minutes}
+          onChange={(e) => update("minutes", e.target.value)}
+          placeholder="Minutes"
+        />
+        <input
+          type="number"
+          min={1}
+          max={300}
+          value={form.reps}
+          onChange={(e) => update("reps", e.target.value)}
+          placeholder="Reps"
+        />
       </div>
 
-      {/* Volume inputs */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 8,
-          marginTop: 8,
-        }}
-      >
-        <div>
-          <input
-            type="number"
-            min={1}
-            max={50}
-            value={form.reps}
-            onChange={(e) => update("reps", e.target.value)}
-            placeholder="Reps (e.g., 15)"
-            style={{ width: "100%" }}
-          />
-          {errors.reps && (
-            <div style={{ color: "crimson", fontSize: 12 }}>{errors.reps}</div>
-          )}
-        </div>
-        <div>
-          <input
-            type="number"
-            min={1}
-            max={10}
-            value={form.sets}
-            onChange={(e) => update("sets", e.target.value)}
-            placeholder="Sets (e.g., 3)"
-            style={{ width: "100%" }}
-          />
-          {errors.sets && (
-            <div style={{ color: "crimson", fontSize: 12 }}>{errors.sets}</div>
-          )}
-        </div>
+      <div className="workout-form-row">
+        <textarea
+          rows={3}
+          placeholder="Notes (optional)"
+          value={form.notes}
+          onChange={(e) => update("notes", e.target.value)}
+        />
       </div>
 
-      <textarea
-        rows={3}
-        placeholder="Notes (optional)"
-        value={form.notes}
-        onChange={(e) => update("notes", e.target.value)}
-        style={{ width: "100%", marginTop: 8 }}
-      />
-
-      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+      <div className="workout-form-actions">
         <button type="submit">
           {form.id ? "Save Changes" : "Add Workout"}
         </button>
@@ -208,6 +138,7 @@ export default function WorkoutForm({
           </button>
         )}
       </div>
-    </form>
-  );
+    </div>
+  </form>
+);
 }

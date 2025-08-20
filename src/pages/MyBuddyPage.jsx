@@ -51,66 +51,94 @@ export default function MyBuddyPage() {
   };
 
   return (
-    <div className="p-4 grid gap-4 lg:grid-cols-[360px,1fr]">
-      {/* LEFT: Buddy + XP */}
-      <section className="border rounded p-4 bg-white">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold mb-2">My Buddy</h1>
-          <div className="flex items-center gap-4">
-            <Link to="/home" className="text-sm underline">
-              Home
-            </Link>
-            <Link to="/workouts" className="text-sm underline">
-              Workout Planner
-            </Link>
+
+    <div className="mybuddy-page">
+    <div className="mybuddy-scroll">
+      <div className="workout-header-top">
+          <Link to="/home" className="workout-home-button">
+            <img src="/images/HomeIcon.png" alt="Home" />
+          </Link>
+        </div>
+      <div className="grid gap-4 lg:grid-cols-[360px,1fr]">
+        <section className="buddy-section">
+          <h3 className="buddy-title">My Buddy</h3>
+          <div className="text-sm text-gray-600 mb-2">Level {buddy.level}</div>
+
+        <div className="xpbar-container">
+          <XPBar current={buddy.xp} target={nextLevelXP(buddy.level)} />
+        </div>
+
+        {/* Only show dev tools if explicitly enabled via .env */}
+        {SHOW_DEV && (
+            <div className="space-x-3 mt-2">
+              <button onClick={() => addXP(50)} className="text-xs underline">
+                +50 XP (dev)
+              </button>
+              <button
+                onClick={resetBuddy}
+                className="text-xs text-red-600 underline"
+              >
+                Reset Buddy (dev)
+              </button>
+            </div>
+          )}
+
+        {/* Source of XP for normal users */}
+        <div className="buddy-center">
+          <Link to="/workouts" className="workout-link">
+            Open Workout Planner
+          </Link>
+        </div>
+
+        <div className="mt-4 buddy-avatar-wrapper">
+            <AvatarPreview
+              appearance={buddy.appearance}
+              outfit={equipped}
+              cosmetics={buddy.cosmetics}
+            />
           </div>
-        </div>
+        </section>
 
-        <div className="text-sm text-gray-600 mb-2">Level {buddy.level}</div>
-        <XPBar current={buddy.xp} target={nextLevelXP(buddy.level)} />
+      <section className="buddy-section">
+          <h3>Allocate Stats</h3>
 
-        <div className="mt-4">
-          <AvatarPreview
-            appearance={buddy.appearance}
-            outfit={equipped}
-            cosmetics={buddy.cosmetics}
-          />
-        </div>
-      </section>
-
-      {/* RIGHT: Customization, Achievements, Stats, Outfits */}
-      <section className="grid gap-4">
-        <CosmeticSelectors
-          cosmetics={buddy.cosmetics}
-          unlocked={buddy.unlocked}
-          onChange={onCosmeticsChange}
-        />
-
-        {/* ⬇️ NEW: Achievements list + streaks unlocked on completion */}
-        <AchievementsWidget />
-
-        <div className="border rounded p-4 bg-white">
-          <h2 className="font-semibold mb-2">Allocate Stats</h2>
           <div className="text-sm mb-2">Unspent Points: {buddy.statPoints}</div>
           <StatAllocation
             stats={buddy.stats}
             onSpend={onSpendPoint}
             disabled={buddy.statPoints <= 0}
           />
-        </div>
+        </section>
 
-        <div className="border rounded p-4 bg-white">
-          <h2 className="font-semibold mb-2">Outfits (Legacy)</h2>
+        <section className="buddy-section">
+          <h3>Customize</h3>
+          <CosmeticPicker
+            buddy={buddy}
+            onChangeCosmetic={onChangeCosmetic}
+            catalogs={{
+              hairStyles: HAIR_STYLES,
+              hairColors: HAIR_COLORS,
+              tops: TOPS,
+              bottoms: BOTTOMS,
+            }}
+          />
+        </section>
+
+        {/* Optional: keep the old outfit gallery if you want */}
+        <section className="buddy-section">
+          <h3>Legacy Outfits</h3>
+
           <OutfitGallery
             outfits={OUTFITS}
             unlocked={buddy.unlockedOutfitIds}
             equippedId={buddy.equippedOutfitId}
             onEquip={onEquipOutfit}
           />
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
-  );
+  </div>
+)
 }
 
 /** Map stats → body appearance (respect size cap after level 10) */

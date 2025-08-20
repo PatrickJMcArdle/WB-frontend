@@ -102,47 +102,24 @@ export default function WorkoutPlannerPage() {
   }
 
   return (
-    <div style={{ padding: 16, maxWidth: 900, margin: "0 auto" }}>
-      <div
-        style={{
-          display: "flex",
-          gap: 12,
-          alignItems: "center",
-          marginBottom: 12,
-        }}
-      >
-        <Link to="/home">← Home</Link>
-        <Link to="/buddy">← Back to Buddy</Link>
-        <h1 style={{ margin: 0 }}>Workout Planner</h1>
+    <div 
+      className="workout-page">
+    <div className="workout-scroll">
+      <div className="workout-header">
+        <div className="workout-header-top">
+          <Link to="/buddy" className="workout-back-button">← Back to Buddy</Link>
+          <Link to="/home" className="workout-home-button">
+            <img src="/images/HomeIcon.png" alt="Home" />
+          </Link>
+        </div>
+  <h1 className="workout-title">Workout Planner</h1>
       </div>
 
-      {!!unlocked.length && (
-        <div
-          style={{
-            marginBottom: 12,
-            padding: 10,
-            border: "1px solid #16a34a",
-            borderRadius: 8,
-            background: "#f0fdf4",
-            color: "#166534",
-          }}
-        >
-          <strong>New achievements unlocked!</strong>
-          <ul style={{ margin: "6px 0 0 16px" }}>
-            {unlocked.map((a) => (
-              <li key={a.id}>
-                {a.name}{" "}
-                <span style={{ opacity: 0.7 }}>({a.points_awarded} pts)</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       {/* Range filter */}
-      <div
-        style={{ display: "flex", gap: 8, alignItems: "end", marginBottom: 12 }}
-      >
+      <div 
+      style={{ display: "flex", gap: 8, alignItems: "end", marginBottom: 12 }}
+      className="workout-range-filter">
         <label>
           From
           <br />
@@ -161,10 +138,11 @@ export default function WorkoutPlannerPage() {
             onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))}
           />
         </label>
-        <button onClick={() => setRange({ from: todayStr(), to: todayStr() })}>
+        <button className="workout-btn" onClick={() => setRange({ from: todayStr(), to: todayStr() })}>
           Today
         </button>
         <button
+          className="workout-btn"
           onClick={() => {
             const d = new Date();
             const weekFrom = new Date(d);
@@ -182,6 +160,7 @@ export default function WorkoutPlannerPage() {
       </div>
 
       {/* Create / Edit form */}
+      <div className="workout-card">
       <WorkoutForm
         initial={
           editing ?? {
@@ -198,61 +177,67 @@ export default function WorkoutPlannerPage() {
         focusOptions={FOCUS_OPTIONS}
         onSave={handleSave}
         onCancel={() => setEditing(null)}
+        className="workout-form"
       />
+      </div>
 
       {/* Plans list */}
-      <ul
-        style={{
+      <ul 
+      style={{
           listStyle: "none",
           padding: 0,
           margin: 0,
           display: "grid",
           gap: 8,
         }}
-      >
+      className="workout-list">
         {filtered.map((p) => (
-          <li
-            key={p.id}
-            style={{ border: "1px solid #eee", borderRadius: 8, padding: 12 }}
-          >
-            <div
-              style={{
+          <li key={p.id} 
+          style={{ border: "1px solid #eee", borderRadius: 8, padding: 12 }} 
+          className="workout-item workout-card">
+            <div 
+            className="workout-item-header"
+            style={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "baseline",
-              }}
-            >
+              }}>
               <strong>{p.title}</strong>
               <small>{new Date(p.date).toLocaleDateString()}</small>
             </div>
-            <div
-              style={{
-                fontSize: 14,
-                marginTop: 4,
-                textTransform: "capitalize",
-              }}
+
+            <div 
+            className="workout-item-info"
+            style={{ fontSize: 14, marginTop: 4 }}
             >
-              Focus: {(p.focuses || []).join(", ") || "—"} • {p.minutes} min •{" "}
-              {p.sets} × {p.reps} reps
+              Focus: {p.focus} • {p.minutes} min • {p.reps} reps
+
               {p.is_completed && (
-                <span style={{ marginLeft: 8, color: "green" }}>
+                <span 
+                style={{ marginLeft: 8, color: "green" }}
+                className="workout-complete">
                   ✓ Completed
                 </span>
               )}
             </div>
             {p.notes ? (
-              <div style={{ fontSize: 13, marginTop: 6, opacity: 0.8 }}>
+              <div 
+              style={{ fontSize: 13, marginTop: 6, opacity: 0.8 }}
+              className="workout-notes">
                 {p.notes}
               </div>
             ) : null}
-            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+            <div 
+            style={{ display: "flex", gap: 8, marginTop: 8 }}
+            className="workout-actions">
               {!p.is_completed && (
-                <button onClick={() => complete(p)}>
+                <button className="workout-btn" onClick={() => complete(p)}>
                   Complete & Apply to Buddy
                 </button>
               )}
-              <button onClick={() => setEditing(p)}>Edit</button>
+              <button className="workout-btn" onClick={() => setEditing(p)}>Edit</button>
               <button
+                className="workout-btn"
                 onClick={() => {
                   removePlan(p.id);
                   setPlans(loadPlans());
@@ -265,6 +250,7 @@ export default function WorkoutPlannerPage() {
         ))}
         {!filtered.length && <p>No workouts in this range yet.</p>}
       </ul>
+    </div>
     </div>
   );
 }
