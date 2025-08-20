@@ -65,24 +65,18 @@ export default function CosmeticSelectors({
   );
 
   return (
-    <div className="border rounded p-4 bg-white">
-      <h2 className="font-semibold mb-2">Customize Buddy</h2>
-
-      <div style={{ display: "grid", gap: 10 }}>
-        {/* Hair Style */}
-        <label>
-          {label("Hair Style")}
-          <select
-            value={current.hairStyleId ?? ""}
-            onChange={(e) => set("hairStyleId", Number(e.target.value))}
-          >
-            {hairStyles.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.name}
-              </option>
-            ))}
-          </select>
-        </label>
+    <div style={{ display: "grid", gap: 10, padding: "0 1rem" }}>
+      <label>
+        {label("Hair Style")}
+        <select
+          value={current.hairStyleId ?? ""}
+          onChange={(e) => set("hairStyleId", Number(e.target.value))}
+        >
+          {hairStyles.map((o) => (
+            <option key={o.id} value={o.id}>{o.name}</option>
+          ))}
+        </select>
+      </label>
 
         {/* Hair Color */}
         <label>
@@ -130,6 +124,5 @@ export default function CosmeticSelectors({
           </select>
         </label>
       </div>
-    </div>
   );
 }

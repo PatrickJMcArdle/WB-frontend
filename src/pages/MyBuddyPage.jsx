@@ -124,7 +124,7 @@ export default function MyBuddyPage() {
           </section>
 
           {/* RIGHT: Customization, Achievements, Stats, Outfits */}
-          <section className="buddy-section">
+          <section className="buddy-section customize-section">
             <h3>Customize</h3>
             <div className="cosmetic-selectors">
               <CosmeticSelectors
