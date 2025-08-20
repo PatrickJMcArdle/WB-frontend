@@ -2,7 +2,7 @@ import { useNavigate } from "react-router";
 import { useState } from "react";
 import "../index.css";
 import useQuery from "../api/useQuery";
-import Map from "../components/map";
+// import Map from "../components/map";
 
 export default function HomePage() {
   const navigate = useNavigate();

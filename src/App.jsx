@@ -14,7 +14,7 @@ import ProfilePage from "./account/ProfilePage";
 import FrontPage from "./guest/LoginPage";
 import GuestPage from "./guest/GuestHome";
 import WorkoutPlannerPage from "./pages/WorkoutPlannerPage";
-import LocationsPage from "./pages/LocationsPage";
+// import LocationsPage from "./pages/LocationsPage";
 
 export default function App() {
   return (
@@ -33,7 +33,7 @@ export default function App() {
           <Route path="/workouts" element={<WorkoutPlannerPage />} />
           <Route path="/map" element={<MapPage />} />
           <Route path="/admin" element={<AdminPage />} />
-          <Route path="/locations" element={<LocationsPage />} />
+          {/* <Route path="/locations" element={<LocationsPage />} /> */}
         </Route>
       </Route>
     </Routes>
