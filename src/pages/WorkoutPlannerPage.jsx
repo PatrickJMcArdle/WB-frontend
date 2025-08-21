@@ -27,7 +27,30 @@ import {
 } from "../services/workoutsApi";
 import { completeWorkout as apiCompleteWorkout } from "../services/achievementsService";
 
-const todayStr = () => new Date().toISOString().slice(0, 10);
+const todayStr = () => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
+function parseLocalYMD(ymd) {
+  if (!ymd) return null;
+  return new Date(ymd + "T00:00:00");
+}
+
+function formatYMDForDisplay(ymd) {
+  const d = parseLocalYMD(ymd);
+  return d ? d.toLocaleDateString() : ymd;
+}
+
+function fmtYMD(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 export default function WorkoutPlannerPage() {
   const [plans, setPlans] = useState(() => loadPlans());
@@ -42,20 +65,23 @@ export default function WorkoutPlannerPage() {
 
   // String-based filter to avoid timezone issues
   const filtered = useMemo(() => {
-    const from = (range.from || "").slice(0, 10);
-    const to = (range.to || "").slice(0, 10);
+    const from = range.from ? parseLocalYMD(range.from) : null;
+    const to = range.to ? parseLocalYMD(range.to) : null;
 
-    return (plans || [])
+    return plans
       .filter((p) => {
-        const d = (p.date || "").slice(0, 10);
+        const d = parseLocalYMD(p.date);
+        if (!d) return false;
         if (from && d < from) return false;
         if (to && d > to) return false;
         return true;
       })
       .sort((a, b) =>
-        a.date === b.date ? a.id - b.id : a.date.localeCompare(b.date)
+        a.date < b.date ? -1 : a.date > b.date ? 1 : a.id - b.id
       );
   }, [plans, range]);
+
+
 
   // ---- Create / Update ----
   async function handleSave(payload) {
@@ -167,12 +193,12 @@ export default function WorkoutPlannerPage() {
             <Link to="/buddy" className="workout-back-button">
               ← Back to Buddy
             </Link>
-            <img
-              src="/images/HomeIcon.png"
-              alt="home"
-              className="workout-home-button"
-              onClick={() => (window.location.href = "/home")}
-            />
+            <Link to="/home" className="workout-home-button">
+              <img
+                src="/images/HomeIcon.png"
+                alt="home"
+              />
+            </Link>
           </div>
           <h1 className="workout-title">Workout Planner</h1>
         </div>
@@ -272,7 +298,7 @@ export default function WorkoutPlannerPage() {
         </div>
 
         {/* List */}
-        <div style={{ width: 280 }}>
+        <div className="workout-card">
           {filtered.length === 0 ? (
             <p style={{ textAlign: "center", opacity: 0.7 }}>
               No workouts in this range yet.
@@ -280,24 +306,24 @@ export default function WorkoutPlannerPage() {
           ) : (
             filtered.map((p) => (
               <div key={p.id} className="workout-item">
-                <div className="workout-card">
+                <div>
                   <div className="workout-item-header">
                     <strong>{p.title}</strong>
                     <small>{new Date(p.date).toLocaleDateString()}</small>
                   </div>
 
-                  <div style={{ fontSize: 14, textTransform: "capitalize" }}>
+                  <div style={{fontSize: 14, textTransform: "capitalize" }} className="workout-list-item">
                     Focus: {(p.focuses || []).join(", ") || "—"} • {p.minutes}{" "}
                     min • {p.sets} × {p.reps} reps
                     {p.is_completed && (
-                      <span style={{ marginLeft: 8, color: "green" }}>
+                      <span style={{ marginLeft: 8}}>
                         ✓ Completed
                       </span>
                     )}
                   </div>
 
                   {p.notes ? (
-                    <div style={{ fontSize: 13, marginTop: 6, opacity: 0.8 }}>
+                    <div style={{ color: "white", fontSize: 13, marginTop: 6, opacity: 0.8 }}>
                       {p.notes}
                     </div>
                   ) : null}

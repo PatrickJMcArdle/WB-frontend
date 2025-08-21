@@ -126,6 +126,8 @@ export default function WorkoutForm({
             value={minutes}
             onChange={(e) => setMinutes(e.target.value)}
           />
+        </div>
+        <div className="workout-form-row">
           <input
             type="number"
             inputMode="numeric"
