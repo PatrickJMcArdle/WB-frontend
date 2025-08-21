@@ -1,7 +1,8 @@
-// src/pages/WorkoutPlannerPage.jsx
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+
 import WorkoutForm from "../components/WorkoutForm";
+import { useAuth } from "../auth/AuthContext";
 
 import {
   loadPlans,
@@ -18,68 +19,110 @@ import {
 } from "../services/workoutService";
 
 import { loadBuddy, saveBuddy, awardXP } from "../services/buddyService";
+import { completeWorkout as apiCompleteWorkout } from "../services/achievementsService";
 
-import { useAuth } from "../auth/AuthContext";
+// OPTIONAL backend sync helpers (safe to keep even if you don't use)
 import {
   createUserWorkout,
   updateUserWorkout,
   deleteUserWorkout as apiDeleteWorkout,
 } from "../services/workoutsApi";
-import { completeWorkout as apiCompleteWorkout } from "../services/achievementsService";
 
-const todayStr = () => new Date().toISOString().slice(0, 10);
+/* -------------------------
+   Local-time date helpers
+--------------------------*/
+
+// “today” in LOCAL time as YYYY-MM-DD
+const todayStr = () => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
+// Parse 'YYYY-MM-DD' as LOCAL midnight (avoid UTC backshift)
+function parseLocalYMD(ymd) {
+  if (!ymd) return null;
+  return new Date(ymd + "T00:00:00");
+}
+
+// Format 'YYYY-MM-DD' for display
+function formatYMDForDisplay(ymd) {
+  const d = parseLocalYMD(ymd);
+  return d ? d.toLocaleDateString() : ymd;
+}
+
+// Format any Date → YYYY-MM-DD (LOCAL)
+function fmtYMD(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/* -------------------------
+   Component
+--------------------------*/
 
 export default function WorkoutPlannerPage() {
   const [plans, setPlans] = useState(() => loadPlans());
   const [range, setRange] = useState({ from: todayStr(), to: todayStr() });
   const [editing, setEditing] = useState(null);
-  const [unlocked, setUnlocked] = useState([]); // newly unlocked achievements toast
+  const [unlocked, setUnlocked] = useState([]); // newly unlocked achievements
 
   const { user, token } = useAuth() || {};
   const userId = user?.id;
 
   useEffect(() => savePlans(plans), [plans]);
 
-  // String-based filter to avoid timezone issues
   const filtered = useMemo(() => {
-    const from = (range.from || "").slice(0, 10);
-    const to = (range.to || "").slice(0, 10);
+    const from = range.from ? parseLocalYMD(range.from) : null;
+    const to = range.to ? parseLocalYMD(range.to) : null;
 
-    return (plans || [])
+    return plans
       .filter((p) => {
-        const d = (p.date || "").slice(0, 10);
+        const d = parseLocalYMD(p.date);
+        if (!d) return false;
         if (from && d < from) return false;
         if (to && d > to) return false;
         return true;
       })
       .sort((a, b) =>
-        a.date === b.date ? a.id - b.id : a.date.localeCompare(b.date)
+        a.date < b.date ? -1 : a.date > b.date ? 1 : a.id - b.id
       );
   }, [plans, range]);
 
-  // ---- Create / Update ----
-  async function handleSave(payload) {
-    // normalize focuses to array
-    const focuses = Array.isArray(payload.focuses) ? payload.focuses : [];
+  /** Map a local plan into the server payload shape */
+  function toServerShape(p) {
+    return {
+      workout_description: p.title,
+      muscle: (p.focuses || [])[0] || "arms",
+      workout_date: p.date, // already yyyy-mm-dd local string
+      minutes_worked_out: Number(p.minutes) || 0,
+      notes: p.notes || "",
+      // OPTIONAL: include reps/sets if your backend wants them:
+      reps: Number(p.reps) || 0,
+      sets: Number(p.sets) || 0,
+    };
+  }
 
+  async function handleSave(payload) {
+    // 1) Save locally (source of truth for the UI)
+    const focuses = Array.isArray(payload.focuses) ? payload.focuses : [];
     const saved = upsertPlan({
       ...payload,
       focuses,
       is_completed: payload.is_completed ?? false,
-      date: (payload.date || "").slice(0, 10),
     });
-
-    // refresh list & show saved date
     setPlans(loadPlans());
-    const d = (saved.date || "").slice(0, 10);
-    if (d) setRange({ from: d, to: d });
     setEditing(null);
 
-    // Optional backend sync (safe, best-effort)
+    // 2) OPTIONAL: sync to backend (best-effort)
     if (userId && token) {
       try {
         if (payload.serverId) {
-          // If you store serverId on the local plan, update
+          // If you stored a mapping to the server's id
           await updateUserWorkout(
             userId,
             payload.serverId,
@@ -87,8 +130,16 @@ export default function WorkoutPlannerPage() {
             token
           );
         } else {
-          // Otherwise create a new row server-side
-          await createUserWorkout(userId, toServerShape(saved), token);
+          const created = await createUserWorkout(
+            userId,
+            toServerShape(saved),
+            token
+          );
+          // If API returns id, you can persist it onto the local plan next time
+          if (created?.id) {
+            upsertPlan({ ...saved, serverId: created.id });
+            setPlans(loadPlans());
+          }
         }
       } catch (e) {
         console.warn("Backend sync failed (local save is OK):", e);
@@ -96,24 +147,8 @@ export default function WorkoutPlannerPage() {
     }
   }
 
-  // ---- Delete ----
-  async function handleDelete(id) {
-    const plan = plans.find((x) => x.id === id);
-    removePlan(id);
-    setPlans(loadPlans());
-
-    if (userId && token && plan?.serverId) {
-      try {
-        await apiDeleteWorkout(userId, plan.serverId, token);
-      } catch (e) {
-        console.warn("Failed to delete on server (local delete OK):", e);
-      }
-    }
-  }
-
-  // ---- Complete a plan (apply XP, stats, achievements) ----
   async function complete(p) {
-    // 1) Mark the plan complete locally
+    // 1) Mark complete locally (and keep minutes/reps/sets)
     const updated = setCompleted(p.id, {
       minutes: p.minutes,
       reps: p.reps,
@@ -142,7 +177,7 @@ export default function WorkoutPlannerPage() {
     };
     saveBuddy(next);
 
-    // 3) Tell backend (workout complete => streaks/achievements)
+    // 3) Tell backend about achievements & streaks
     if (userId && token) {
       try {
         const { newAchievements } = await apiCompleteWorkout(userId, token);
@@ -158,6 +193,20 @@ export default function WorkoutPlannerPage() {
     setPlans(loadPlans());
   }
 
+  async function handleDelete(localId) {
+    const p = plans.find((x) => x.id === localId);
+    removePlan(localId);
+    setPlans(loadPlans());
+
+    if (userId && token && p?.serverId) {
+      try {
+        await apiDeleteWorkout(userId, p.serverId, token);
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
   return (
     <div className="workout-page">
       <div className="workout-scroll">
@@ -171,7 +220,6 @@ export default function WorkoutPlannerPage() {
               src="/images/HomeIcon.png"
               alt="home"
               className="workout-home-button"
-              onClick={() => (window.location.href = "/home")}
             />
           </div>
           <h1 className="workout-title">Workout Planner</h1>
@@ -237,10 +285,7 @@ export default function WorkoutPlannerPage() {
               weekFrom.setDate(d.getDate() - d.getDay());
               const weekTo = new Date(weekFrom);
               weekTo.setDate(weekFrom.getDate() + 6);
-              setRange({
-                from: weekFrom.toISOString().slice(0, 10),
-                to: weekTo.toISOString().slice(0, 10),
-              });
+              setRange({ from: fmtYMD(weekFrom), to: fmtYMD(weekTo) });
             }}
           >
             This Week
@@ -283,7 +328,7 @@ export default function WorkoutPlannerPage() {
                 <div className="workout-card">
                   <div className="workout-item-header">
                     <strong>{p.title}</strong>
-                    <small>{new Date(p.date).toLocaleDateString()}</small>
+                    <small>{formatYMDForDisplay(p.date)}</small>
                   </div>
 
                   <div style={{ fontSize: 14, textTransform: "capitalize" }}>
@@ -332,15 +377,4 @@ export default function WorkoutPlannerPage() {
       </div>
     </div>
   );
-}
-
-/** Map a local plan into the server payload shape */
-function toServerShape(p) {
-  return {
-    workout_description: p.title || "",
-    muscle: Array.isArray(p.focuses) ? p.focuses.join(",") : "",
-    workout_date: (p.date || "").slice(0, 10),
-    minutes_worked_out: Number(p.minutes) || 0,
-    notes: p.notes || "",
-  };
 }
