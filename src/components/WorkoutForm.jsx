@@ -57,6 +57,7 @@ export default function WorkoutForm({
     const payload = {
       ...form,
       title: form.title.trim(),
+      date: (form.date || "").slice(0, 10),
       minutes: Math.round(Number(form.minutes)),
       reps: Math.round(Number(form.reps)),
       sets: Math.round(Number(form.sets)),
@@ -65,80 +66,79 @@ export default function WorkoutForm({
     onSave?.(payload);
   }
 
-return (
-  <form
-    onSubmit={submit}
-    className="workout-form"
-  >
-    <h2 className="workout-form-title">
-      {form.id ? "Edit Workout" : "Add Workout"}
-    </h2>
+  return (
+    <form onSubmit={submit} className="workout-form">
+      <h2 className="workout-form-title">
+        {form.id ? "Edit Workout" : "Add Workout"}
+      </h2>
 
-    <div className="workout-form-inner">
-      <div className="workout-form-row">
-        <input
-          placeholder="Title (e.g., Push Day)"
-          value={form.title}
-          onChange={(e) => update("title", e.target.value)}
-        />
-      </div>
+      <div className="workout-form-inner">
+        <div className="workout-form-row">
+          <input
+            placeholder="Title (e.g., Push Day)"
+            value={form.title}
+            onChange={(e) => update("title", e.target.value)}
+          />
+        </div>
 
-      <div className="workout-form-row">
-        <select
-          value={form.focus}
-          onChange={(e) => update("focus", e.target.value)}
-        >
-          {focusOptions.map((f) => (
-            <option key={f} value={f}>{f}</option>
-          ))}
-        </select>
+        <div className="workout-form-row">
+          <select
+            value={form.focus}
+            onChange={(e) => update("focus", e.target.value)}
+          >
+            {focusOptions.map((f) => (
+              <option key={f} value={f}>
+                {f}
+              </option>
+            ))}
+          </select>
 
-        <input
-          type="date"
-          value={form.date}
-          onChange={(e) => update("date", e.target.value)}
-        />
-      </div>
+          <input
+            type="date"
+            value={form.date}
+            onChange={(e) => update("date", e.target.value)}
+          />
+        </div>
 
-      <div className="workout-form-row">
-        <input
-          type="number"
-          min={5}
-          max={180}
-          value={form.minutes}
-          onChange={(e) => update("minutes", e.target.value)}
-          placeholder="Minutes"
-        />
-        <input
-          type="number"
-          min={1}
-          max={300}
-          value={form.reps}
-          onChange={(e) => update("reps", e.target.value)}
-          placeholder="Reps"
-        />
-      </div>
+        <div className="workout-form-row">
+          <input
+            type="number"
+            min={5}
+            max={180}
+            value={form.minutes}
+            onChange={(e) => update("minutes", e.target.value)}
+            placeholder="Minutes"
+          />
+          <input
+            type="number"
+            min={1}
+            max={300}
+            value={form.reps}
+            onChange={(e) => update("reps", e.target.value)}
+            placeholder="Reps"
+          />
+        </div>
 
-      <div className="workout-form-row">
-        <textarea
-          rows={3}
-          placeholder="Notes (optional)"
-          value={form.notes}
-          onChange={(e) => update("notes", e.target.value)}
-        />
-      </div>
+        <div className="workout-form-row">
+          <textarea
+            rows={3}
+            placeholder="Notes (optional)"
+            value={form.notes}
+            onChange={(e) => update("notes", e.target.value)}
+          />
+        </div>
 
-      <div className="workout-form-actions">
-        <button type="submit">
-          {form.id ? "Save Changes" : "Add Workout"}
-        </button>
-        {onCancel && (
-          <button type="button" onClick={onCancel}>
-            Cancel
+        <div className="workout-form-actions">
+          <button type="submit">
+            {form.id ? "Save Changes" : "Add Workout"}
           </button>
-        )}
+          {onCancel && (
+            <button type="button" onClick={onCancel}>
+              Cancel
+            </button>
+          )}
+        </div>
       </div>
-    </div>
-  </form>
-);
+    </form>
+  );
 }
