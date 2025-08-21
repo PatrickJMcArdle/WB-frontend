@@ -1,142 +1,174 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+/**
+ * Props:
+ *  - initial: { id|null, title, focuses[], date(yyyy-mm-dd), minutes, reps, sets, notes }
+ *  - focusOptions: string[] (e.g. ["arms","legs","core","cardio"])
+ *  - onSave(payload)
+ *  - onCancel()
+ */
 export default function WorkoutForm({
-  initial = {
-    id: null,
-    title: "",
-    focuses: [], // <- multi
-    date: new Date().toISOString().slice(0, 10),
-    minutes: 30,
-    reps: 15,
-    sets: 3,
-    notes: "",
-  },
+  initial,
   focusOptions = [],
-  onSave, // (payload) => void
-  onCancel, // () => void
+  onSave,
+  onCancel,
 }) {
-  const [form, setForm] = useState(initial);
-  const [errors, setErrors] = useState({});
+  // normalize initial
+  const init = useMemo(
+    () => ({
+      id: initial?.id ?? null,
+      title: initial?.title ?? "",
+      focuses: Array.isArray(initial?.focuses) ? initial.focuses : [],
+      date: (initial?.date || new Date().toISOString().slice(0, 10)).slice(
+        0,
+        10
+      ),
+      minutes: Number(initial?.minutes) || 30,
+      reps: Number(initial?.reps) || 15,
+      sets: Number(initial?.sets) || 3,
+      notes: initial?.notes ?? "",
+    }),
+    [initial]
+  );
 
-  useEffect(() => setForm(initial), [initial]);
+  const [title, setTitle] = useState(init.title);
+  const [focus, setFocus] = useState(init.focuses[0] || focusOptions[0] || "");
+  const [date, setDate] = useState(init.date);
+  const [minutes, setMinutes] = useState(init.minutes);
+  const [reps, setReps] = useState(init.reps);
+  const [sets, setSets] = useState(init.sets);
+  const [notes, setNotes] = useState(init.notes);
+  const [err, setErr] = useState("");
 
-  function update(key, val) {
-    setForm((f) => ({ ...f, [key]: val }));
-  }
-
-  function toggleFocus(key) {
-    setForm((f) => {
-      const cur = new Set(f.focuses || []);
-      if (cur.has(key)) cur.delete(key);
-      else cur.add(key);
-      return { ...f, focuses: Array.from(cur) };
-    });
-  }
+  // if parent swaps initial (e.g. Edit), re-seed the form
+  useEffect(() => {
+    setTitle(init.title);
+    setFocus(init.focuses[0] || focusOptions[0] || "");
+    setDate(init.date);
+    setMinutes(init.minutes);
+    setReps(init.reps);
+    setSets(init.sets);
+    setNotes(init.notes);
+    setErr("");
+  }, [init, focusOptions]);
 
   function validate() {
-    const e = {};
-    if (!form.title.trim()) e.title = "Title is required";
-    if (!Array.isArray(form.focuses) || form.focuses.length === 0)
-      e.focuses = "Pick at least one focus";
-    const mins = Number(form.minutes);
-    if (!Number.isFinite(mins) || mins < 5 || mins > 180)
-      e.minutes = "Minutes must be 5–180";
-    const reps = Number(form.reps);
-    if (!Number.isFinite(reps) || reps < 1 || reps > 50)
-      e.reps = "Reps must be 1–50";
-    const sets = Number(form.sets);
-    if (!Number.isFinite(sets) || sets < 1 || sets > 10)
-      e.sets = "Sets must be 1–10";
-    setErrors(e);
-    return Object.keys(e).length === 0;
+    if (!title.trim()) return "Please enter a workout title.";
+    if (!date) return "Please select a date.";
+    if (!focus) return "Please choose a focus.";
+    if (!Number(minutes) || Number(minutes) <= 0)
+      return "Minutes must be greater than 0.";
+    if (!Number(sets) || Number(sets) <= 0)
+      return "Sets must be greater than 0.";
+    if (!Number(reps) || Number(reps) <= 0)
+      return "Reps must be greater than 0.";
+    return "";
   }
 
-  function submit(e) {
+  function handleSubmit(e) {
     e.preventDefault();
-    if (!validate()) return;
+    const v = validate();
+    if (v) {
+      setErr(v);
+      return;
+    }
     const payload = {
-      ...form,
-      title: form.title.trim(),
-      date: (form.date || "").slice(0, 10),
-      minutes: Math.round(Number(form.minutes)),
-      reps: Math.round(Number(form.reps)),
-      sets: Math.round(Number(form.sets)),
-      focuses: Array.from(new Set(form.focuses || [])),
+      id: init.id, // keep id if editing; null on create
+      title: title.trim(),
+      focuses: [focus], // planner expects array
+      date: (date || "").slice(0, 10),
+      minutes: Number(minutes),
+      reps: Number(reps),
+      sets: Number(sets),
+      notes,
+      // you can also carry a serverId if you map it elsewhere
     };
     onSave?.(payload);
   }
 
   return (
-    <form onSubmit={submit} className="workout-form">
-      <h2 className="workout-form-title">
-        {form.id ? "Edit Workout" : "Add Workout"}
-      </h2>
-
+    <form className="workout-form" onSubmit={handleSubmit}>
       <div className="workout-form-inner">
+        {/* Title */}
         <div className="workout-form-row">
           <input
+            type="text"
             placeholder="Title (e.g., Push Day)"
-            value={form.title}
-            onChange={(e) => update("title", e.target.value)}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
           />
         </div>
 
+        {/* Focus + Date */}
         <div className="workout-form-row">
-          <select
-            value={form.focus}
-            onChange={(e) => update("focus", e.target.value)}
-          >
-            {focusOptions.map((f) => (
-              <option key={f} value={f}>
-                {f}
+          <select value={focus} onChange={(e) => setFocus(e.target.value)}>
+            {focusOptions.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
               </option>
             ))}
           </select>
 
           <input
             type="date"
-            value={form.date}
-            onChange={(e) => update("date", e.target.value)}
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
           />
         </div>
 
+        {/* Minutes + Reps */}
         <div className="workout-form-row">
           <input
             type="number"
-            min={5}
-            max={180}
-            value={form.minutes}
-            onChange={(e) => update("minutes", e.target.value)}
-            placeholder="Minutes"
-          />
-          <input
-            type="number"
+            inputMode="numeric"
             min={1}
-            max={300}
-            value={form.reps}
-            onChange={(e) => update("reps", e.target.value)}
-            placeholder="Reps"
+            placeholder="minutes"
+            value={minutes}
+            onChange={(e) => setMinutes(e.target.value)}
+          />
+          <input
+            type="number"
+            inputMode="numeric"
+            min={1}
+            placeholder="reps"
+            value={reps}
+            onChange={(e) => setReps(e.target.value)}
           />
         </div>
 
+        {/* Sets */}
         <div className="workout-form-row">
-          <textarea
-            rows={3}
-            placeholder="Notes (optional)"
-            value={form.notes}
-            onChange={(e) => update("notes", e.target.value)}
+          <input
+            type="number"
+            inputMode="numeric"
+            min={1}
+            placeholder="sets"
+            value={sets}
+            onChange={(e) => setSets(e.target.value)}
           />
         </div>
 
+        {/* Notes */}
+        <textarea
+          rows={4}
+          placeholder="Notes (optional)"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+        />
+
+        {/* Errors */}
+        {err && (
+          <div style={{ color: "#9c2a2a", fontWeight: 700, marginTop: 6 }}>
+            {err}
+          </div>
+        )}
+
+        {/* Actions */}
         <div className="workout-form-actions">
-          <button type="submit">
-            {form.id ? "Save Changes" : "Add Workout"}
+          <button type="submit">Add Workout</button>
+          <button type="button" onClick={() => onCancel?.()}>
+            Cancel
           </button>
-          {onCancel && (
-            <button type="button" onClick={onCancel}>
-              Cancel
-            </button>
-          )}
         </div>
       </div>
     </form>
