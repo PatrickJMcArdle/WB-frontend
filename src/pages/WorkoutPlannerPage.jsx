@@ -93,6 +93,7 @@ export default function WorkoutPlannerPage() {
       );
   }, [plans, range]);
 
+  // ---- Create / Update ----
   /** Map a local plan into the server payload shape */
   function toServerShape(p) {
     return {
@@ -106,7 +107,7 @@ export default function WorkoutPlannerPage() {
       sets: Number(p.sets) || 0,
     };
   }
-
+  
   async function handleSave(payload) {
     // 1) Save locally (source of truth for the UI)
     const focuses = Array.isArray(payload.focuses) ? payload.focuses : [];
@@ -216,11 +217,12 @@ export default function WorkoutPlannerPage() {
             <Link to="/buddy" className="workout-back-button">
               ← Back to Buddy
             </Link>
-            <img
-              src="/images/HomeIcon.png"
-              alt="home"
-              className="workout-home-button"
-            />
+            <Link to="/home" className="workout-home-button">
+              <img
+                src="/images/HomeIcon.png"
+                alt="home"
+              />
+            </Link>
           </div>
           <h1 className="workout-title">Workout Planner</h1>
         </div>
@@ -317,7 +319,7 @@ export default function WorkoutPlannerPage() {
         </div>
 
         {/* List */}
-        <div style={{ width: 280 }}>
+        <div className="workout-card">
           {filtered.length === 0 ? (
             <p style={{ textAlign: "center", opacity: 0.7 }}>
               No workouts in this range yet.
@@ -325,24 +327,24 @@ export default function WorkoutPlannerPage() {
           ) : (
             filtered.map((p) => (
               <div key={p.id} className="workout-item">
-                <div className="workout-card">
+                <div>
                   <div className="workout-item-header">
                     <strong>{p.title}</strong>
                     <small>{formatYMDForDisplay(p.date)}</small>
                   </div>
 
-                  <div style={{ fontSize: 14, textTransform: "capitalize" }}>
+                  <div style={{fontSize: 14, textTransform: "capitalize" }} className="workout-list-item">
                     Focus: {(p.focuses || []).join(", ") || "—"} • {p.minutes}{" "}
                     min • {p.sets} × {p.reps} reps
                     {p.is_completed && (
-                      <span style={{ marginLeft: 8, color: "green" }}>
+                      <span style={{ marginLeft: 8}}>
                         ✓ Completed
                       </span>
                     )}
                   </div>
 
                   {p.notes ? (
-                    <div style={{ fontSize: 13, marginTop: 6, opacity: 0.8 }}>
+                    <div style={{ color: "white", fontSize: 13, marginTop: 6, opacity: 0.8 }}>
                       {p.notes}
                     </div>
                   ) : null}
